@@ -58,6 +58,6 @@ soundTouch.clearBuffer(id)
 ```
 
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
-to stream to an AudioTrack.
+to decode an audio file and stream to an AudioTrack.
 
 
