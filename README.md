@@ -60,4 +60,12 @@ soundTouch.clearBuffer(id)
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
 to decode an audio file and stream to an AudioTrack.
 
+To demonstrate, execute the following in your app (note that the file must be 44100, 16-bit at present):
+
+```java
+//the last two parameters are speed of playback and pitch in semi-tones.
+SoundTouchPlayable st = new SoundTouchPlayable(fullPathToMp3File, 0, 2, 44100, 2, 1.0f, 0);
+new Thread(st).start();
+st.play();
+````
 
