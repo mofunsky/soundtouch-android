@@ -71,7 +71,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
 
 	const int BUFF_SIZE = 8192;
 
-	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 	soundTouch.sTouch->clear();
@@ -101,7 +101,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(JNIE
 	const int bytesPerSample = soundTouch.bytesPerSample;
 	const int BUFF_SIZE = length / bytesPerSample;
 
-	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, true); //audio is finishing
@@ -109,19 +109,19 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(JNIE
 	delete[] fBufferIn;
 	fBufferIn = NULL;
 }
+
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JNIEnv *env,
 	jobject thiz,
 	jint track,
 	jbyteArray input,
 	jint length)
 {
-
 	SoundTouchExt& soundTouch = sProcessors.at(track);
 	
 	const int bytesPerSample = soundTouch.bytesPerSample;
 	const int BUFF_SIZE = length / bytesPerSample;
 
-	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
 
 	jboolean isCopy;
 	jbyte* ar = env->GetByteArrayElements(input, &isCopy);
