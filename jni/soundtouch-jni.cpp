@@ -20,45 +20,68 @@
 using namespace soundtouch;
 using namespace std;
 
-struct SoundTouchExt
+class SoundTouchStream : public SoundTouch
 {
-	SoundTouch* sTouch;
-	queue<signed char>* fBufferOut;
-	int channels;
-	int sampleRate;
-	float tempoChange;
-	int pitchSemi;
-	int bytesPerSample;
 
-	SoundTouchExt()
+private:
+	queue<signed char>* fBufferOut;
+	int sampleRate;
+	int bytesPerSample;
+public:
+
+	queue<signed char>* getStream()
 	{
-		sTouch = new SoundTouch();
+		return fBufferOut;
+	}
+
+	int getSampleRate()
+	{
+		return sampleRate;
+	}
+
+	int getBytesPerSample()
+	{
+		return bytesPerSample;
+	}
+
+	void setSampleRate(int sampleRate)
+	{
+		SoundTouch::setSampleRate(sampleRate);
+		this->sampleRate = sampleRate;
+	}
+
+	void setBytesPerSample(int bytesPerSample)
+	{
+		this->bytesPerSample = bytesPerSample;
+	}
+
+	uint getChannels()
+	{
+		return channels;
+	}
+
+	SoundTouchStream()
+	{
 		fBufferOut = new queue<signed char>();
 	}
 
-	SoundTouchExt(const SoundTouchExt& other)
+	SoundTouchStream(const SoundTouchStream& other) : SoundTouch()
 	{
-		sTouch = new SoundTouch();
 		fBufferOut = new queue<signed char>();
-		this->channels = other.channels;
-		this->sampleRate = other.sampleRate;
-		this->tempoChange = other.tempoChange;
-		this->pitchSemi = other.pitchSemi;
-		this->bytesPerSample = other.bytesPerSample;
 	}
 };
 
 const int MAX_TRACKS = 16;
 
-vector<SoundTouchExt> sProcessors(MAX_TRACKS);
+vector<SoundTouchStream> stStreams(MAX_TRACKS);
 
 static void* getConvBuffer(int);
 static int write(const float*, queue<signed char>*, int, int);
-static void setup(SoundTouchExt&, int, int, int, float, float);
+static void setup(SoundTouchStream&, int, int, int, float, float);
 static void convertInput16(jbyte*, float*, int);
 static inline int saturate(float, float, float);
 static void* getConvBuffer(int);
-static int process(SoundTouchExt&, SAMPLETYPE*, queue<signed char>*, int, bool);
+static int process(SoundTouchStream&, SAMPLETYPE*, queue<signed char>*, int, bool);
 static int putQueueInChar(jbyte*, queue<signed char>*, int);
 
 
@@ -67,14 +90,14 @@ static int putQueueInChar(jbyte*, queue<signed char>*, int);
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(JNIEnv *env,
 	jobject thiz, jint track)
 {
-	SoundTouchExt& soundTouch = sProcessors.at(track);
+	SoundTouchStream& soundTouch = stStreams.at(track);
 
 	const int BUFF_SIZE = 8192;
 
-	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.getStream();
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
-	soundTouch.sTouch->clear();
+	soundTouch.clear();
 
 	delete[] fBufferIn;
 	fBufferIn = NULL;
@@ -88,7 +111,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setup(JNIEnv *env,
 	jobject thiz, jint track, jint channels, jint samplingRate, jint bytesPerSample, jfloat tempo, jint pitchSemi)
 {
-	SoundTouchExt& soundTouch = sProcessors.at(track);
+	SoundTouchStream& soundTouch = stStreams.at(track);
 	setup(soundTouch, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 }
 
@@ -96,12 +119,12 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(JNIE
 	jobject thiz, jint track,
 	int length)
 {
-	SoundTouchExt& soundTouch = sProcessors.at(track);
+	SoundTouchStream& soundTouch = stStreams.at(track);
 
-	const int bytesPerSample = soundTouch.bytesPerSample;
+	const int bytesPerSample = soundTouch.getBytesPerSample();
 	const int BUFF_SIZE = length / bytesPerSample;
 
-	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.getStream();
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, true); //audio is finishing
@@ -116,12 +139,12 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JN
 	jbyteArray input,
 	jint length)
 {
-	SoundTouchExt& soundTouch = sProcessors.at(track);
+	SoundTouchStream& soundTouch = stStreams.at(track);
 	
-	const int bytesPerSample = soundTouch.bytesPerSample;
+	const int bytesPerSample = soundTouch.getBytesPerSample();
 	const int BUFF_SIZE = length / bytesPerSample;
 
-	queue<signed char>* fBufferOut = soundTouch.fBufferOut;
+	queue<signed char>* fBufferOut = soundTouch.getStream();;
 
 	jboolean isCopy;
 	jbyte* ar = env->GetByteArrayElements(input, &isCopy);
@@ -143,7 +166,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(JN
 extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(JNIEnv *env,
 	jobject thiz, jint track, jbyteArray get, jint toGet)
 {
-	queue<signed char>* fBufferOut = sProcessors.at(track).fBufferOut;
+	queue<signed char>* fBufferOut = stStreams.at(track).getStream();
 
 	jbyte* res = new jbyte[toGet];
 	
@@ -181,15 +204,13 @@ static int putQueueInChar(jbyte* res, queue<signed char>* fBufferOut, int toPut)
 	return count;
 }
 
-static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signed char>* fBufferOut,
+static int process(SoundTouchStream& soundTouch, SAMPLETYPE* fBufferIn, queue<signed char>* fBufferOut,
 	const int BUFF_SIZE,
 	bool finishing)
 {
-	const int channels = soundTouch.channels;
+	const uint channels = soundTouch.getChannels();
 	const int buffSizeSamples = BUFF_SIZE / channels;
-	const int bytesPerSample = soundTouch.bytesPerSample;
-
-	SoundTouch* sTouch = soundTouch.sTouch;
+	const int bytesPerSample = soundTouch.getBytesPerSample();
 
 	int nSamples = BUFF_SIZE / channels;
 	
@@ -197,16 +218,16 @@ static int process(SoundTouchExt& soundTouch, SAMPLETYPE* fBufferIn, queue<signe
 
 	if (finishing)
 	{
-		sTouch->flush();
+		soundTouch.flush();
 	}
 	else
 	{
-		sTouch->putSamples(fBufferIn, nSamples);
+		soundTouch.putSamples(fBufferIn, nSamples);
 	}
 
 	do
 	{
-		nSamples = sTouch->receiveSamples(fBufferIn, buffSizeSamples);
+		nSamples = soundTouch.receiveSamples(fBufferIn, buffSizeSamples);
 		processed += write(fBufferIn, fBufferOut, nSamples * channels, bytesPerSample);
 	} while (nSamples != 0);
 
@@ -259,33 +280,27 @@ static int write(const float *bufferIn, queue<signed char>* bufferOut, int numEl
 	return bufferOut->size() - oldSize;
 }
 
-static void setup(SoundTouchExt& soundTouch, int channels, int sampleRate, int bytesPerSample, float tempoChange, float pitchSemi)
+static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate, int bytesPerSample, float tempoChange, float pitchSemi)
 {
-	SoundTouch* sTouch = soundTouch.sTouch;
+	soundTouch.setBytesPerSample(bytesPerSample);
 
-	soundTouch.channels = channels;
-	soundTouch.sampleRate = sampleRate;
-	soundTouch.bytesPerSample = bytesPerSample;
-	soundTouch.tempoChange = tempoChange;
-	soundTouch.pitchSemi = pitchSemi;
+	soundTouch.setSampleRate(sampleRate);
+	soundTouch.setChannels(channels);
 
-	sTouch->setSampleRate(sampleRate);
-	sTouch->setChannels(channels);
+	soundTouch.setTempo(tempoChange);
+	soundTouch.setPitchSemiTones(pitchSemi);
+	soundTouch.setRateChange(0);
 
-	sTouch->setTempo(tempoChange);
-	sTouch->setPitchSemiTones(pitchSemi);
-	sTouch->setRateChange(0);
-
-	sTouch->setSetting(SETTING_USE_QUICKSEEK, false);
-	sTouch->setSetting(SETTING_USE_AA_FILTER, true);
+	soundTouch.setSetting(SETTING_USE_QUICKSEEK, false);
+	soundTouch.setSetting(SETTING_USE_AA_FILTER, true);
 
 	//todo if speech
 	if (false)
 	{
 		// use settings for speech processing
-		sTouch->setSetting(SETTING_SEQUENCE_MS, 40);
-		sTouch->setSetting(SETTING_SEEKWINDOW_MS, 15);
-		sTouch->setSetting(SETTING_OVERLAP_MS, 8);
+		soundTouch.setSetting(SETTING_SEQUENCE_MS, 40);
+		soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 15);
+		soundTouch.setSetting(SETTING_OVERLAP_MS, 8);
 		//fprintf(stderr, "Tune processing parameters for speech processing.\n");
 	}
 }
