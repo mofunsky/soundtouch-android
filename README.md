@@ -68,4 +68,10 @@ SoundTouchPlayable st = new SoundTouchPlayable(fullPathToMp3File, 0, 2, 44100, 2
 new Thread(st).start();
 st.play();
 ````
+The track can be paused or stopped at a later time:
+
+```java
+st.pause();
+st.stop();
+````
 
