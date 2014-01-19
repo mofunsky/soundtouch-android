@@ -63,7 +63,7 @@ To demonstrate, execute the following in your app:
 
 ```java
 //the last two parameters are speed of playback and pitch in semi-tones.
-SoundTouchPlayable st = new SoundTouchPlayable(fullPathToMp3File, 0, 1.0f, 0);
+SoundTouchPlayable st = new SoundTouchPlayable(fullPathToAudioFile, 0, 1.0f, 0);
 new Thread(st).start();
 st.play();
 ````
