@@ -125,7 +125,7 @@ public class SoundTouchPlayable implements Runnable
 			if (finished)
 				break;
 			input = file.decodeChunk();
-			processChunk(input);
+			processChunk(input, false);
 		}
 		while (!file.sawOutputEOS());
 
@@ -135,18 +135,18 @@ public class SoundTouchPlayable implements Runnable
 		{
 			if (finished)
 				break;
-			bytesReceived = processChunk(input);
+			bytesReceived = processChunk(input, true);
 		}
 		while (bytesReceived > 0);
 	}
 
-	private int processChunk(byte[] input) throws SoundTouchAndroidException
+	private int processChunk(byte[] input, boolean finishing) throws SoundTouchAndroidException
 	{
 		int bytesReceived = 0;
 
 		if (input != null)
 		{
-			soundTouch.putBytes(input);
+			if (!finishing) soundTouch.putBytes(input);
 
 			bytesReceived = soundTouch.getBytes(input);
 
