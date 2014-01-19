@@ -22,7 +22,7 @@ distrubted under LGPL license.
 
 It is alpha, use at your own risk. Please see issues for a list of known limitations.
 
-Currently only supports Androids with an FPU.
+Currently only supports Androids with an FPU (armeabi-v7a).
 
 Example usage:
 
