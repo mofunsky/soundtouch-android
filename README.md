@@ -29,9 +29,10 @@ Example usage:
 ```java
 //There are currently 16 track id's you can use (0-15), each one has a separate SoundTouch processor.
 
-//Set your audio processing requirements: track id, tempoChange (1.0 is normal speed), pitch Change (in semi-tones)
+//Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, 
+//                                      tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
 
-SoundTouch soundTouch = new SoundTouch(0, 1.0f, 2);
+SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 
 //byte[] sizes are recommended to be 8192 bytes.
 
