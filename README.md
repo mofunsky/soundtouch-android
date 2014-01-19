@@ -22,7 +22,7 @@ distrubted under LGPL license.
 
 It is alpha, use at your own risk. Please see issues for a list of known limitations.
 
-Currently only supports Androids with an FPU and 16 bit audio samples.
+Currently only supports Androids with an FPU.
 
 Example usage:
 
@@ -59,7 +59,7 @@ soundTouch.clearBuffer(id)
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
 to decode an audio file and stream to an AudioTrack.
 
-To demonstrate, execute the following in your app (note that the file must be 44100, 16-bit at present):
+To demonstrate, execute the following in your app:
 
 ```java
 //the last two parameters are speed of playback and pitch in semi-tones.
