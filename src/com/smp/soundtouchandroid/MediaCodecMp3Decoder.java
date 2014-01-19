@@ -18,17 +18,28 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	private BufferInfo info;
 	private MediaCodec codec;
 	private MediaExtractor extractor;
+	private MediaFormat format;
 	private ByteBuffer[] codecInputBuffers;
 	private ByteBuffer[] codecOutputBuffers;
 	private byte[] chunk;
+	private boolean sawOutputEOS;
 
+	public int getSamplingRate()
+	{
+		return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+	}
+	
+	public int getChannels()
+	{
+		return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+	}
 	@SuppressLint("NewApi")
 	public MediaCodecMp3Decoder(String fullPath) throws IOException
 	{
 		extractor = new MediaExtractor();
 		extractor.setDataSource(fullPath);
 
-		MediaFormat format = extractor.getTrackFormat(0);
+		format = extractor.getTrackFormat(0);
 		String mime = format.getString(MediaFormat.KEY_MIME);
 
 		codec = MediaCodec.createDecoderByType(mime);
@@ -40,22 +51,19 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		extractor.selectTrack(0);
 		
 		info = new MediaCodec.BufferInfo();
-		chunk = new byte[1];
 	}
 
 	@Override
 	public byte[] decodeChunk() throws DecoderException
 	{
 		advanceInput();
-
-		boolean sawOutputEOS = false;
 		
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
 		if (res >= 0)
 		{
 			int outputBufIndex = res;
 			ByteBuffer buf = codecOutputBuffers[outputBufIndex];
-			if(chunk.length != info.size)
+			if(chunk == null || chunk.length != info.size)
  			{
  				chunk = new byte[info.size];
  			}
@@ -76,7 +84,6 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 			final MediaFormat oformat = codec.getOutputFormat();
 			Log.d("MP3", "Output format has changed to " + oformat);
 		}
-		if (sawOutputEOS) return new byte[0];
 		
 		return chunk;
 	}
@@ -123,6 +130,11 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 				extractor.advance();
 			}
 		}
+	}
+	@Override
+	public boolean sawOutputEOS()
+	{
+		return sawOutputEOS;
 	}
 
 }

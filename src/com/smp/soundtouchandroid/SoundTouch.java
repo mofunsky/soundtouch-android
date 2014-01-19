@@ -33,7 +33,7 @@ public class SoundTouch
     private static synchronized native final void finish(int track, int bufSize);
     private static synchronized native final void clearBytes(int track);
     
-    public void clearBuffer(int track)
+    public void clearBuffer()
     {
     	clearBytes(track);
     }

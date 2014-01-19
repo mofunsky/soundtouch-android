@@ -25,6 +25,52 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		bitstream = new Bitstream(inputStream);
 		decoder = new Decoder();
 		outStream = new ByteArrayOutputStream(MAX_CHUNK_SIZE);
+		determineFormat();
+	}
+
+	private void determineFormat()
+	{
+		final int LOTS = 18000;
+		
+		inputStream.mark(LOTS);
+		Header frameHeader;
+		try
+		{
+			frameHeader = bitstream.readFrame();
+			if (frameHeader == null)
+			{
+				sawOutputEOS = true;
+				return;
+			}
+			else
+			{
+				SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
+				channels = output.getChannelCount();
+				samplingRate = output.getSampleFrequency();
+				bitstream.unreadFrame();
+				bitstream.closeFrame();
+			}
+		}
+		catch (BitstreamException e1)
+		{
+			e1.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
+		catch (javazoom.jl.decoder.DecoderException e)
+		{
+			e.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
+		
+		try
+		{
+			inputStream.reset();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			throw new DecoderException("Error decoding mp3 file");
+		}
 	}
 
 	public JLayerMp3Decoder(String path, long position)
@@ -38,13 +84,16 @@ public class JLayerMp3Decoder implements Mp3Decoder
 	private byte[] currentChunk;
 	private Bitstream bitstream;
 	private Decoder decoder;
-	ByteArrayOutputStream outStream;
-
+	private ByteArrayOutputStream outStream;
+	private boolean sawOutputEOS;
+	private int channels, samplingRate;
+	
 	public void close()
 	{
 		try
 		{
 			inputStream.close();
+			outStream.close();
 		}
 		catch (IOException e)
 		{
@@ -65,6 +114,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 				if (frameHeader == null)
 				{
 					done = true;
+					sawOutputEOS = true;
 				}
 				else
 				{
@@ -101,7 +151,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		}
 		return outStream.toByteArray();
 	}
-
+	//not used
 	public static byte[] decode(String path, int startMs, int maxMs)
 			throws IOException, DecoderException
 	{
@@ -188,6 +238,24 @@ public class JLayerMp3Decoder implements Mp3Decoder
 			}
 		}
 		return outStream.toByteArray();
+	}
+
+	@Override
+	public boolean sawOutputEOS()
+	{
+		return sawOutputEOS;
+	}
+
+	@Override
+	public int getChannels()
+	{
+		return channels;
+	}
+
+	@Override
+	public int getSamplingRate()
+	{
+		return samplingRate;
 	}
 
 }

@@ -7,9 +7,12 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
+import android.widget.Toast;
 
 public class SoundTouchPlayable implements Runnable
 {
+	private static final int DEFAULT_BYTES_PER_SAMPLE = 2;
+
 	private Object pauseLock;
 	private SoundTouch soundTouch;
 	private AudioTrack track;
@@ -18,9 +21,7 @@ public class SoundTouchPlayable implements Runnable
 	private volatile boolean paused, finished;
 	private int id;
 
-	public SoundTouchPlayable(String file, int id, int channels, int samplingRate,
-			int bytesPerSample, float tempo, int pitchSemi)
-
+	public SoundTouchPlayable(String file, int id, float tempo, int pitchSemi)
 			throws IOException
 	{
 		if (Build.VERSION.SDK_INT >= 16)
@@ -31,11 +32,11 @@ public class SoundTouchPlayable implements Runnable
 		{
 			this.file = new JLayerMp3Decoder(file);
 		}
-		setup(id, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+		
+		setup(id, tempo, pitchSemi);
 	}
 
-	private void setup(int id, int channels, int samplingRate,
-			int bytesPerSample, float tempo, int pitchSemi)
+	private void setup(int id, float tempo, int pitchSemi)
 	{
 		this.id = id;
 
@@ -43,13 +44,17 @@ public class SoundTouchPlayable implements Runnable
 		paused = true;
 		finished = false;
 
+		int channels = file.getChannels();
+		int samplingRate = file.getSamplingRate();
+
 		int channelFormat = -1;
-		if (channels == 1)
+		if (channels == 1) // mono
 			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
-		if (channels == 2)
+		if (channels == 2) // stereo
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
 
-		soundTouch = new SoundTouch(id, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+		soundTouch = new SoundTouch(id, channels, samplingRate, DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
+		
 		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
 				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 	}
@@ -58,8 +63,6 @@ public class SoundTouchPlayable implements Runnable
 	public void run()
 	{
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
-		//track.play();
 
 		try
 		{
@@ -71,7 +74,7 @@ public class SoundTouchPlayable implements Runnable
 		}
 		finally
 		{
-			soundTouch.clearBuffer(id);
+			soundTouch.clearBuffer();
 			track.stop();
 			track.flush();
 			track.release();
@@ -123,7 +126,7 @@ public class SoundTouchPlayable implements Runnable
 				break;
 			input = processChunk();
 		}
-		while (input.length > 0);
+		while (!file.sawOutputEOS());
 
 		soundTouch.finish();
 
@@ -138,17 +141,20 @@ public class SoundTouchPlayable implements Runnable
 
 	private byte[] processChunk() throws com.smp.soundtouchandroid.DecoderException
 	{
-		
+
 		byte[] input;
 		int bytesReceived = 0;
 
 		input = file.decodeChunk();
-		soundTouch.putBytes(input);
 
-		bytesReceived = soundTouch.getBytes(input);
+		if (input != null)
+		{
+			soundTouch.putBytes(input);
 
-		track.write(input, 0, bytesReceived);
+			bytesReceived = soundTouch.getBytes(input);
 
+			track.write(input, 0, bytesReceived);
+		}
 		synchronized (pauseLock)
 		{
 			while (paused)
@@ -173,12 +179,15 @@ public class SoundTouchPlayable implements Runnable
 		int bytesReceived = 0;
 
 		input = file.decodeChunk();
-		soundTouch.putBytes(input);
 
-		bytesReceived = soundTouch.getBytes(input);
+		if (input != null)
+		{
+			soundTouch.putBytes(input);
 
-		track.write(input, 0, bytesReceived);
+			bytesReceived = soundTouch.getBytes(input);
 
+			track.write(input, 0, bytesReceived);
+		}
 		synchronized (pauseLock)
 		{
 			while (paused)
