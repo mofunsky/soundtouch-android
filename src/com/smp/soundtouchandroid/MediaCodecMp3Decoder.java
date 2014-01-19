@@ -22,7 +22,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	private ByteBuffer[] codecInputBuffers;
 	private ByteBuffer[] codecOutputBuffers;
 	private byte[] chunk;
-	private boolean sawOutputEOS;
+	private volatile boolean sawOutputEOS;
 
 	public int getSamplingRate()
 	{
@@ -54,7 +54,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	}
 
 	@Override
-	public byte[] decodeChunk() throws DecoderException
+	public byte[] decodeChunk() throws SoundTouchAndroidException
 	{
 		advanceInput();
 		

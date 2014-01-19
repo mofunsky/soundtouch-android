@@ -54,12 +54,12 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		catch (BitstreamException e1)
 		{
 			e1.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 		catch (javazoom.jl.decoder.DecoderException e)
 		{
 			e.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 		
 		try
@@ -69,7 +69,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		catch (IOException e)
 		{
 			e.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 	}
 
@@ -85,7 +85,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 	private Bitstream bitstream;
 	private Decoder decoder;
 	private ByteArrayOutputStream outStream;
-	private boolean sawOutputEOS;
+	private volatile boolean sawOutputEOS;
 	private int channels, samplingRate;
 	
 	public void close()
@@ -102,7 +102,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		}
 	}
 
-	public byte[] decodeChunk() throws DecoderException
+	public byte[] decodeChunk() throws SoundTouchAndroidException
 	{
 		outStream.reset();
 		boolean done = false;
@@ -137,23 +137,23 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		catch (BitstreamException e)
 		{
 			e.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 		catch (javazoom.jl.decoder.DecoderException e)
 		{
 			e.printStackTrace();
-			throw new DecoderException("Error decoding mp3 file");
+			throw new SoundTouchAndroidException("Error decoding mp3 file");
 		}
 		return outStream.toByteArray();
 	}
 	//not used
 	public static byte[] decode(String path, int startMs, int maxMs)
-			throws IOException, DecoderException
+			throws IOException, SoundTouchAndroidException
 	{
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream(1024);
 
@@ -191,7 +191,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 						if (output.getSampleFrequency() != 44100
 								|| output.getChannelCount() != 2)
 						{
-							throw new DecoderException("mono or non-44100 MP3 not supported");
+							throw new SoundTouchAndroidException("mono or non-44100 MP3 not supported");
 						}
 
 						short[] pcm = output.getBuffer();
@@ -216,10 +216,10 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		{
 			throw new IOException("Bitstream error: " + e);
 		}
-		catch (DecoderException e)
+		catch (SoundTouchAndroidException e)
 		{
 			Log.w("DECODE", "Decoder error", e);
-			throw new DecoderException("Decoder Exception");
+			throw new SoundTouchAndroidException("Decoder Exception");
 		}
 		catch (javazoom.jl.decoder.DecoderException e)
 		{

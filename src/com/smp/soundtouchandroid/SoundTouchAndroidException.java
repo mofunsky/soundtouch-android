@@ -1,8 +1,8 @@
 package com.smp.soundtouchandroid;
 
-public class DecoderException extends RuntimeException
+public class SoundTouchAndroidException extends RuntimeException
 {
-	public DecoderException(String errorMsg)
+	public SoundTouchAndroidException(String errorMsg)
 	{
 		super(errorMsg);
 	}

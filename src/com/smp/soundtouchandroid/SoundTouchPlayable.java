@@ -68,7 +68,7 @@ public class SoundTouchPlayable implements Runnable
 		{
 			playFile();
 		}
-		catch (com.smp.soundtouchandroid.DecoderException e)
+		catch (SoundTouchAndroidException e)
 		{
 			e.printStackTrace();
 		}
@@ -115,7 +115,7 @@ public class SoundTouchPlayable implements Runnable
 
 	}
 
-	private void playFile() throws com.smp.soundtouchandroid.DecoderException
+	private void playFile() throws SoundTouchAndroidException
 	{
 		int bytesReceived = 0;
 		byte[] input = null;
@@ -140,7 +140,7 @@ public class SoundTouchPlayable implements Runnable
 		while (bytesReceived > 0);
 	}
 
-	private int processChunk(byte[] input) throws com.smp.soundtouchandroid.DecoderException
+	private int processChunk(byte[] input) throws SoundTouchAndroidException
 	{
 		int bytesReceived = 0;
 
