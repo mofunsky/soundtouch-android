@@ -30,7 +30,7 @@ Example usage:
 //There are currently 16 track id's you can use (0-15), each one has a separate SoundTouch processor.
 
 //Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, 
-//                                      tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
+//                              tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
 
 SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
 
