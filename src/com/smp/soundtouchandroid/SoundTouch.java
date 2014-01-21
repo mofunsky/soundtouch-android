@@ -50,6 +50,6 @@ public class SoundTouch
     //call finish after the last bytes have been written
     public void finish()
     {
-    	finish(track, BUFFER_SIZE_PUT);
+    	finish(track, DEFAULT_BUFFER_SIZE);
     }
 }

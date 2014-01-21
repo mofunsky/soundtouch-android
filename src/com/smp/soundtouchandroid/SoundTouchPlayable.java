@@ -11,19 +11,20 @@ import android.widget.Toast;
 
 public class SoundTouchPlayable implements Runnable
 {
-	private static final int DEFAULT_BYTES_PER_SAMPLE = 2;
-
 	private Object pauseLock;
 	private SoundTouch soundTouch;
 	private AudioTrack track;
 	private Mp3Decoder file;
-
-	private volatile boolean paused, finished;
 	private int id;
+	
+	private volatile boolean paused, finished;
+	
 
 	public SoundTouchPlayable(String file, int id, float tempo, int pitchSemi)
 			throws IOException
 	{
+		this.id = id;
+		
 		if (Build.VERSION.SDK_INT >= 16)
 		{
 			this.file = new MediaCodecMp3Decoder(file);
@@ -35,30 +36,7 @@ public class SoundTouchPlayable implements Runnable
 		
 		setup(id, tempo, pitchSemi);
 	}
-
-	private void setup(int id, float tempo, int pitchSemi)
-	{
-		this.id = id;
-
-		pauseLock = new Object();
-		paused = true;
-		finished = false;
-
-		int channels = file.getChannels();
-		int samplingRate = file.getSamplingRate();
-
-		int channelFormat = -1;
-		if (channels == 1) // mono
-			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
-		if (channels == 2) // stereo
-			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
-
-		soundTouch = new SoundTouch(id, channels, samplingRate, DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
-		
-		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
-				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
-	}
-
+	
 	@Override
 	public void run()
 	{
@@ -67,8 +45,19 @@ public class SoundTouchPlayable implements Runnable
 		try
 		{
 			playFile();
+			
+			while (track.getPlayState() == AudioTrack.PLAYSTATE_PLAYING)
+			{
+				//wait for the track to stop playing.
+				Thread.sleep(50);
+			}
 		}
 		catch (SoundTouchAndroidException e)
+		{
+			//need to notify...something?
+			e.printStackTrace();
+		}
+		catch (InterruptedException e)
 		{
 			e.printStackTrace();
 		}
@@ -81,7 +70,17 @@ public class SoundTouchPlayable implements Runnable
 			file.close();
 		}
 	}
-
+	
+	public AudioTrack getAudioTrack()
+	{
+		return track;
+	}
+	
+	public void setVolume(float left, float right)
+	{
+		track.setStereoVolume(left, right);
+	}
+	
 	public void play()
 	{
 		synchronized (pauseLock)
@@ -112,8 +111,32 @@ public class SoundTouchPlayable implements Runnable
 			}
 		}
 		finished = true;
-
 	}
+	
+	private void setup(int id, float tempo, int pitchSemi)
+	{
+		this.id = id;
+
+		pauseLock = new Object();
+		paused = true;
+		finished = false;
+
+		int channels = file.getChannels();
+		int samplingRate = file.getSamplingRate();
+
+		int channelFormat = -1;
+		if (channels == 1) // mono
+			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
+		if (channels == 2) // stereo
+			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
+
+		soundTouch = new SoundTouch(id, channels, samplingRate, DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
+		
+		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, channelFormat,
+				AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
+	}
+
+	
 
 	private void playFile() throws SoundTouchAndroidException
 	{
