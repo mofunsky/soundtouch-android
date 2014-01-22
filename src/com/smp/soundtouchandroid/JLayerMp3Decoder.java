@@ -258,4 +258,22 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		return samplingRate;
 	}
 
+	@Override
+	public void seek(long timeInUs)
+	{
+		throw new UnsupportedOperationException("Seeking is not implemented on API < 15");	
+	}
+
+	@Override
+	public long getDuration()
+	{
+		throw new UnsupportedOperationException("Seeking is not implemented on API < 15");	
+	}
+
+	@Override
+	public void resetEOS()
+	{
+		sawOutputEOS = false;
+	}
+
 }

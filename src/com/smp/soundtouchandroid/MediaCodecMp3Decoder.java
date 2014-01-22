@@ -15,6 +15,8 @@ import static com.smp.soundtouchandroid.Constants.*;
 public class MediaCodecMp3Decoder implements Mp3Decoder
 {
 	private static final long TIMEOUT_US = 100000;
+
+	private long duration; //track duration in us;
 	private BufferInfo info;
 	private MediaCodec codec;
 	private MediaExtractor extractor;
@@ -41,6 +43,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 
 		format = extractor.getTrackFormat(0);
 		String mime = format.getString(MediaFormat.KEY_MIME);
+		duration = format.getLong(MediaFormat.KEY_DURATION);
 
 		codec = MediaCodec.createDecoderByType(mime);
 		codec.configure(format, null, null, 0);
@@ -49,10 +52,18 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		codecOutputBuffers = codec.getOutputBuffers();
 
 		extractor.selectTrack(0);
-		
 		info = new MediaCodec.BufferInfo();
 	}
-
+	protected void seek(double percentage)
+	{
+		
+	}
+	@Override
+	public void seek(long timeInUs)
+	{
+		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+		codec.flush();
+	}
 	@Override
 	public byte[] decodeChunk() throws SoundTouchAndroidException
 	{
@@ -95,10 +106,9 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		codec.stop();
 		codec.release();
 		extractor.release();
-		
 	}
 
-	public void advanceInput()
+	private void advanceInput()
 	{
 		boolean sawInputEOS = false;
 
@@ -135,6 +145,22 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	public boolean sawOutputEOS()
 	{
 		return sawOutputEOS;
+	}
+
+	public long getDuration()
+	{
+		return duration;
+	}
+
+	public void setDuration(long duration)
+	{
+		this.duration = duration;
+	}
+
+	@Override
+	public void resetEOS()
+	{
+		sawOutputEOS = false;
 	}
 
 }

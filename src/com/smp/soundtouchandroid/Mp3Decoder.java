@@ -3,9 +3,12 @@ package com.smp.soundtouchandroid;
 
 public interface Mp3Decoder
 {
-	public byte[] decodeChunk() throws SoundTouchAndroidException;
-	public void close();
-	public boolean sawOutputEOS();
-	public int getChannels();
-	public int getSamplingRate();
+	byte[] decodeChunk() throws SoundTouchAndroidException;
+	void close();
+	boolean sawOutputEOS();
+	int getChannels();
+	int getSamplingRate();
+	void seek(long timeInUs);
+	long getDuration();
+	void resetEOS();
 }
