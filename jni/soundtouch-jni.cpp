@@ -84,8 +84,7 @@ static void setup(SoundTouchStream&, int, int, int, float, float);
 static void convertInput(jbyte*, float*, int, int);
 static inline int saturate(float, float, float);
 static void* getConvBuffer(int);
-static int process(SoundTouchStream&, SAMPLETYPE*, queue<signed char>*, int,
-		bool);
+static int process(SoundTouchStream&, SAMPLETYPE*, queue<signed char>*, int, bool);
 static int putQueueInChar(jbyte*, queue<signed char>*, int);
 
 #ifdef __cplusplus
@@ -152,7 +151,6 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(
 
 	SAMPLETYPE* fBufferIn = new SAMPLETYPE[BUFF_SIZE];
 
-	//converts the chars to floats (16-bit only).
 	convertInput(ar, fBufferIn, BUFF_SIZE, bytesPerSample);
 
 	process(soundTouch, fBufferIn, fBufferOut, BUFF_SIZE, false); //audio is ongoing.

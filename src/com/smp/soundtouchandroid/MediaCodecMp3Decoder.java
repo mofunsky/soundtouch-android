@@ -15,8 +15,10 @@ import static com.smp.soundtouchandroid.Constants.*;
 public class MediaCodecMp3Decoder implements Mp3Decoder
 {
 	private static final long TIMEOUT_US = 100000;
-
-	private long duration; //track duration in us;
+	
+	private long durationUs; //track duration in us
+	private volatile long lastPresentationTime;
+	private volatile long currentTimeUs; //total played duration thus far
 	private BufferInfo info;
 	private MediaCodec codec;
 	private MediaExtractor extractor;
@@ -43,7 +45,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 
 		format = extractor.getTrackFormat(0);
 		String mime = format.getString(MediaFormat.KEY_MIME);
-		duration = format.getLong(MediaFormat.KEY_DURATION);
+		durationUs = format.getLong(MediaFormat.KEY_DURATION);
 
 		codec = MediaCodec.createDecoderByType(mime);
 		codec.configure(format, null, null, 0);
@@ -62,11 +64,15 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	public void seek(long timeInUs)
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+		currentTimeUs = timeInUs;
 		codec.flush();
 	}
 	@Override
 	public byte[] decodeChunk() throws SoundTouchAndroidException
 	{
+		/*
+		if (lastPresentationTime == NOT_INITIALIZED) 
+			lastPresentationTime = System.nanoTime();*/
 		advanceInput();
 		
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
@@ -108,39 +114,41 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		extractor.release();
 	}
 
-	private void advanceInput()
+private void advanceInput()
+{
+	boolean sawInputEOS = false;
+
+	int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
+	if (inputBufIndex >= 0)
 	{
-		boolean sawInputEOS = false;
+		ByteBuffer dstBuf = codecInputBuffers[inputBufIndex];
 
-		int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
-		if (inputBufIndex >= 0)
+		int sampleSize = extractor.readSampleData(dstBuf, 0);
+		long presentationTimeUs = 0;
+
+		if (sampleSize < 0)
 		{
-			ByteBuffer dstBuf = codecInputBuffers[inputBufIndex];
+			sawInputEOS = true;
+			sampleSize = 0;
+		}
+		else
+		{
+			presentationTimeUs = extractor.getSampleTime();
+			currentTimeUs += presentationTimeUs - lastPresentationTime;
+			lastPresentationTime = presentationTimeUs;
+		}
 
-			int sampleSize = extractor.readSampleData(dstBuf, 0);
-			long presentationTimeUs = 0;
-
-			if (sampleSize < 0)
-			{
-				sawInputEOS = true;
-				sampleSize = 0;
-			}
-			else
-			{
-				presentationTimeUs = extractor.getSampleTime();
-			}
-
-			codec.queueInputBuffer(inputBufIndex,
-					0,
-					sampleSize,
-					presentationTimeUs,
-					sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
-			if (!sawInputEOS)
-			{
-				extractor.advance();
-			}
+		codec.queueInputBuffer(inputBufIndex,
+				0,
+				sampleSize,
+				presentationTimeUs,
+				sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
+		if (!sawInputEOS)
+		{
+			extractor.advance();
 		}
 	}
+}
 	@Override
 	public boolean sawOutputEOS()
 	{
@@ -149,18 +157,19 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 
 	public long getDuration()
 	{
-		return duration;
-	}
-
-	public void setDuration(long duration)
-	{
-		this.duration = duration;
+		return durationUs;
 	}
 
 	@Override
 	public void resetEOS()
 	{
 		sawOutputEOS = false;
+	}
+
+	@Override
+	public long getPlayedDuration()
+	{
+		return currentTimeUs;
 	}
 
 }

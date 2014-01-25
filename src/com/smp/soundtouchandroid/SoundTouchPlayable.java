@@ -7,6 +7,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
+import android.os.Handler;
 import android.widget.Toast;
 
 public class SoundTouchPlayable implements Runnable
@@ -15,12 +16,21 @@ public class SoundTouchPlayable implements Runnable
 	private Object trackLock;
 	private Object decodeLock;
 
+	private Handler handler;
+	private PlaybackProgressListener playbackListener;
 	private SoundTouch soundTouch;
 	private volatile AudioTrack track;
 	private Mp3Decoder file;
 	private int id;
 
 	private volatile boolean paused, finished;
+
+	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String file, int id, float tempo, int pitchSemi)
+			throws IOException
+	{
+		this(file, id, tempo, pitchSemi);
+		this.playbackListener = playbackListener;
+	}
 
 	public SoundTouchPlayable(String file, int id, float tempo, int pitchSemi)
 			throws IOException
@@ -33,9 +43,10 @@ public class SoundTouchPlayable implements Runnable
 		{
 			this.file = new JLayerMp3Decoder(file);
 		}
-
+		handler = new Handler();
 		setup(id, tempo, pitchSemi);
 	}
+
 	private void pauseWait()
 	{
 		synchronized (pauseLock)
@@ -52,6 +63,7 @@ public class SoundTouchPlayable implements Runnable
 			}
 		}
 	}
+
 	@Override
 	public void run()
 	{
@@ -88,9 +100,9 @@ public class SoundTouchPlayable implements Runnable
 		}
 	}
 
-	public void seekTo(double percentage)
+	public void seekTo(double percentage) // 0.0 - 1.0
 	{
-		long timeInUs = (long) (file.getDuration() * (percentage / 100.0));
+		long timeInUs = (long) (file.getDuration() * percentage);
 		seekTo(timeInUs);
 	}
 
@@ -202,6 +214,24 @@ public class SoundTouchPlayable implements Runnable
 			synchronized (decodeLock)
 			{
 				input = file.decodeChunk();
+				if (playbackListener != null)
+				{
+					handler.post(new Runnable() {
+
+						@Override
+						public void run()
+						{
+							double cp;
+							long pd;
+							long d;
+							pd = file.getPlayedDuration();
+							d = file.getDuration();
+							cp = pd == 0 ? 0 : (double) pd / d;
+							playbackListener.onProgressChanged(cp);	
+						}
+					});
+					
+				}
 			}
 
 			processChunk(input, false);
@@ -222,7 +252,7 @@ public class SoundTouchPlayable implements Runnable
 	private int processChunk(byte[] input, boolean finishing) throws SoundTouchAndroidException
 	{
 		pauseWait();
-		
+
 		int bytesReceived = 0;
 
 		if (input != null)

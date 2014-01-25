@@ -10,5 +10,7 @@ public interface Mp3Decoder
 	int getSamplingRate();
 	void seek(long timeInUs);
 	long getDuration();
+	long getPlayedDuration();
 	void resetEOS();
+	
 }

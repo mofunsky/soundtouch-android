@@ -261,19 +261,25 @@ public class JLayerMp3Decoder implements Mp3Decoder
 	@Override
 	public void seek(long timeInUs)
 	{
-		throw new UnsupportedOperationException("Seeking is not implemented on API < 15");	
+		throw new UnsupportedOperationException("Seeking is not implemented on API < 16");	
 	}
 
 	@Override
 	public long getDuration()
 	{
-		throw new UnsupportedOperationException("Seeking is not implemented on API < 15");	
+		throw new UnsupportedOperationException("Seeking is not implemented on API < 16");	
 	}
 
 	@Override
 	public void resetEOS()
 	{
 		sawOutputEOS = false;
+	}
+
+	@Override
+	public long getPlayedDuration()
+	{
+		throw new UnsupportedOperationException("Seeking is not implemented on API < 16");	
 	}
 
 }
