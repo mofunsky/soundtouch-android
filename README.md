@@ -55,7 +55,7 @@ do
     //do stuff with output.
 } while (bytesReceived != 0)
 
-//if you stop playing, call clear on the track id to clear the pipeline for later use.
+//if you stop playing, call clear on the track to clear the pipeline for later use.
 soundTouch.clearBuffer()
 ```
 
