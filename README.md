@@ -56,7 +56,7 @@ do
 } while (bytesReceived != 0)
 
 //if you stop playing, call clear on the track id to clear the pipeline for later use.
-soundTouch.clearBuffer(id)
+soundTouch.clearBuffer()
 ```
 
 Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
