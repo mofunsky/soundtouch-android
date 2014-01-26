@@ -32,6 +32,10 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return fileName;
 	}
+	public boolean isPaused()
+	{
+		return paused;
+	}
 
 	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String fileName, int id, float tempo, int pitchSemi)
 			throws IOException
@@ -93,7 +97,6 @@ public class SoundTouchPlayable implements Runnable
 		{
 			while (!finished)
 			{
-				pauseWait();
 				playFile();
 
 				paused = true;
@@ -146,11 +149,12 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return track.getAudioSessionId();
 	}
+	/*
 	public AudioTrack getAudioTrack()
 	{
 		return track;
 	}
-
+	*/
 	public void setVolume(float left, float right)
 	{
 		synchronized (trackLock)
@@ -204,10 +208,13 @@ public class SoundTouchPlayable implements Runnable
 		int samplingRate = decoder.getSamplingRate();
 
 		int channelFormat = -1;
+		
 		if (channels == 1) // mono
 			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
-		if (channels == 2) // stereo
+		else if (channels == 2) // stereo
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
+		else
+			throw new SoundTouchAndroidException("Valid channel count is 1 or 2");
 
 		soundTouch = new SoundTouch(id, channels, samplingRate, DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
 
@@ -222,6 +229,8 @@ public class SoundTouchPlayable implements Runnable
 
 		do
 		{
+			pauseWait();
+			
 			if (finished)
 				break;
 
@@ -266,8 +275,6 @@ public class SoundTouchPlayable implements Runnable
 
 	private int processChunk(final byte[] input, boolean finishing) throws SoundTouchAndroidException
 	{
-		pauseWait();
-		
 		int bytesReceived = 0;
 		
 		if (input != null)
