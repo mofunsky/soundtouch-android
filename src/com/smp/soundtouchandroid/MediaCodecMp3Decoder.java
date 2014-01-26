@@ -56,10 +56,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		extractor.selectTrack(0);
 		info = new MediaCodec.BufferInfo();
 	}
-	protected void seek(double percentage)
-	{
-		
-	}
+	
 	@Override
 	public void seek(long timeInUs)
 	{
@@ -68,11 +65,8 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		codec.flush();
 	}
 	@Override
-	public byte[] decodeChunk() throws SoundTouchAndroidException
+	public byte[] decodeChunk()
 	{
-		/*
-		if (lastPresentationTime == NOT_INITIALIZED) 
-			lastPresentationTime = System.nanoTime();*/
 		advanceInput();
 		
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
