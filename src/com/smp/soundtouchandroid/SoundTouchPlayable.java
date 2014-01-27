@@ -32,19 +32,22 @@ public class SoundTouchPlayable implements Runnable
 	{
 		soundTouch.setTempo(tempo);
 	}
+
 	public void setTempoChange(float tempoChange)
 	{
 		soundTouch.setTempoChange(tempoChange);
 	}
+
 	public void setPitchSemi(float pitchSemi)
 	{
 		soundTouch.setPitchSemi(pitchSemi);
 	}
-	
+
 	public String getFileName()
 	{
 		return fileName;
 	}
+
 	public boolean isPaused()
 	{
 		return paused;
@@ -158,16 +161,15 @@ public class SoundTouchPlayable implements Runnable
 			decoder.seek(timeInUs);
 		}
 	}
+
 	public int getSessionId()
 	{
 		return track.getAudioSessionId();
 	}
+
 	/*
-	public AudioTrack getAudioTrack()
-	{
-		return track;
-	}
-	*/
+	 * public AudioTrack getAudioTrack() { return track; }
+	 */
 	public void setVolume(float left, float right)
 	{
 		synchronized (trackLock)
@@ -221,7 +223,7 @@ public class SoundTouchPlayable implements Runnable
 		int samplingRate = decoder.getSamplingRate();
 
 		int channelFormat = -1;
-		
+
 		if (channels == 1) // mono
 			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
 		else if (channels == 2) // stereo
@@ -243,35 +245,43 @@ public class SoundTouchPlayable implements Runnable
 		do
 		{
 			pauseWait();
-			
+
 			if (finished)
 				break;
 
-			synchronized (decodeLock)
+			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
 			{
-				input = decoder.decodeChunk();
-				if (playbackListener != null)
+				synchronized (decodeLock)
 				{
-					handler.post(new Runnable()
+					input = decoder.decodeChunk();
+
+					if (playbackListener != null)
 					{
-
-						@Override
-						public void run()
+						handler.post(new Runnable()
 						{
-							double cp;
-							long pd;
-							long d;
-							pd = decoder.getPlayedDuration();
-							d = decoder.getDuration();
-							cp = pd == 0 ? 0 : (double) pd / d;
-							playbackListener.onProgressChanged(cp);
-						}
-					});
 
+							@Override
+							public void run()
+							{
+								double cp;
+								long pd;
+								long d;
+								pd = decoder.getPlayedDuration();
+								d = decoder.getDuration();
+								cp = pd == 0 ? 0 : (double) pd / d;
+								playbackListener.onProgressChanged(cp);
+							}
+						});
+
+					}
 				}
-			}
 
-			processChunk(input, false);
+				processChunk(input, true);
+			}
+			else
+			{
+				processChunk(input, false);
+			}
 		}
 		while (!decoder.sawOutputEOS());
 
@@ -281,18 +291,18 @@ public class SoundTouchPlayable implements Runnable
 		{
 			if (finished)
 				break;
-			bytesReceived = processChunk(input, true);
+			bytesReceived = processChunk(input, false);
 		}
 		while (bytesReceived > 0);
 	}
 
-	private int processChunk(final byte[] input, boolean finishing) throws SoundTouchAndroidException
+	private int processChunk(final byte[] input, boolean putBytes) throws SoundTouchAndroidException
 	{
 		int bytesReceived = 0;
-		
+
 		if (input != null)
 		{
-			if (!finishing)
+			if (putBytes)
 				soundTouch.putBytes(input);
 
 			bytesReceived = soundTouch.getBytes(input);
@@ -301,7 +311,7 @@ public class SoundTouchPlayable implements Runnable
 			{
 				track.write(input, 0, bytesReceived);
 			}
-			
+
 		}
 		return bytesReceived;
 	}

@@ -147,7 +147,6 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(
 	const int BUFF_SIZE = length / bytesPerSample;
 
 	queue<signed char>* fBufferOut = soundTouch.getStream();
-	;
 
 	jboolean isCopy;
 	jbyte* ar = env->GetByteArrayElements(input, &isCopy);
@@ -197,6 +196,13 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempo(
 {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setTempo(soundTouch, tempo);
+}
+extern "C" DLL_PUBLIC jlong Java_com_smp_soundtouchandroid_SoundTouch_getOutputBufferSize(
+		JNIEnv *env, jobject thiz, jint track)
+{
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	queue<signed char>* fBufferOut = soundTouch.getStream();
+	return fBufferOut->size();
 }
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempoChange(
 		JNIEnv *env, jobject thiz, jint track, jfloat tempoChange)

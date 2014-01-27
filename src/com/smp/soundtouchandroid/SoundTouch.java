@@ -35,6 +35,12 @@ public class SoundTouch
     private static synchronized native final void setTempo(int track, float tempo);
     private static synchronized native final void setTempoChange(int track, float tempoChange);
     private static synchronized native final void setPitchSemi(int track, float pitchSemi);
+    private static synchronized native final long getOutputBufferSize(int track);
+    
+    public long getOutputBufferSize()
+    {
+    	return getOutputBufferSize(track);
+    }
     
     public void setTempo(float tempo)
     {
