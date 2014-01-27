@@ -28,6 +28,19 @@ public class SoundTouchPlayable implements Runnable
 
 	private volatile boolean paused, finished;
 
+	public void setTempo(float tempo)
+	{
+		soundTouch.setTempo(tempo);
+	}
+	public void setTempoChange(float tempoChange)
+	{
+		soundTouch.setTempoChange(tempoChange);
+	}
+	public void setPitchSemi(float pitchSemi)
+	{
+		soundTouch.setPitchSemi(pitchSemi);
+	}
+	
 	public String getFileName()
 	{
 		return fileName;
@@ -37,14 +50,14 @@ public class SoundTouchPlayable implements Runnable
 		return paused;
 	}
 
-	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String fileName, int id, float tempo, int pitchSemi)
+	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String fileName, int id, float tempo, float pitchSemi)
 			throws IOException
 	{
 		this(fileName, id, tempo, pitchSemi);
 		this.playbackListener = playbackListener;
 	}
 
-	public SoundTouchPlayable(String fileName, int id, float tempo, int pitchSemi)
+	public SoundTouchPlayable(String fileName, int id, float tempo, float pitchSemi)
 			throws IOException
 	{
 		if (Build.VERSION.SDK_INT >= 16)
@@ -202,7 +215,7 @@ public class SoundTouchPlayable implements Runnable
 		finished = true;
 	}
 
-	private void setupAudio(int id, float tempo, int pitchSemi)
+	private void setupAudio(int id, float tempo, float pitchSemi)
 	{
 		int channels = decoder.getChannels();
 		int samplingRate = decoder.getSamplingRate();

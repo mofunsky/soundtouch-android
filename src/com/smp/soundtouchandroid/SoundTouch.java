@@ -11,10 +11,10 @@ public class SoundTouch
 	
 	private int channels, samplingRate, bytesPerSample;
 	private float tempo;
-	private int pitchSemi;
+	private float pitchSemi;
 	private int track;
 	
-	public SoundTouch(int track, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi)
+	public SoundTouch(int track, int channels, int samplingRate, int bytesPerSample, float tempo, float pitchSemi)
 	{
 		
 		this.channels = channels;
@@ -27,11 +27,29 @@ public class SoundTouch
 		setup(track, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 	}
 	
-	private static synchronized native final void setup(int track, int channels, int samplingRate, int bytesPerSample, float tempo, int pitchSemi);
+	private static synchronized native final void setup(int track, int channels, int samplingRate, int bytesPerSample, float tempo, float pitchSemi);
     private static synchronized native final void putBytes(int track, byte[] input, int length);
     private static synchronized native final int getBytes(int track, byte[] output, int toGet);
     private static synchronized native final void finish(int track, int bufSize);
     private static synchronized native final void clearBytes(int track);
+    private static synchronized native final void setTempo(int track, float tempo);
+    private static synchronized native final void setTempoChange(int track, float tempoChange);
+    private static synchronized native final void setPitchSemi(int track, float pitchSemi);
+    
+    public void setTempo(float tempo)
+    {
+    	setTempo(track, tempo);
+    }
+    public void setTempoChange(float tempoChange)
+    {
+    	if (tempoChange < -50 || tempoChange > 100)
+    		throw new SoundTouchAndroidException("Tempo percentage must be between -50 and 100");
+    	setTempoChange(track, tempoChange);
+    }
+    public void setPitchSemi(float pitchSemi)
+    {
+    	setPitchSemi(track, pitchSemi);
+    }
     
     public void clearBuffer()
     {

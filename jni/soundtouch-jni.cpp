@@ -20,7 +20,7 @@
 using namespace soundtouch;
 using namespace std;
 
-class SoundTouchStream: public SoundTouch
+class SoundTouchStream : public SoundTouch
 {
 
 private:
@@ -86,6 +86,9 @@ static inline int saturate(float, float, float);
 static void* getConvBuffer(int);
 static int process(SoundTouchStream&, SAMPLETYPE*, queue<signed char>*, int, bool);
 static int putQueueInChar(jbyte*, queue<signed char>*, int);
+static void setPitchSemi(SoundTouchStream&, float);
+static void setTempo(SoundTouchStream&, float);
+static void setTempoChange(SoundTouchStream&, float);
 
 #ifdef __cplusplus
 
@@ -112,7 +115,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setup(
 		JNIEnv *env, jobject thiz, jint track, jint channels, jint samplingRate,
-		jint bytesPerSample, jfloat tempo, jint pitchSemi)
+		jint bytesPerSample, jfloat tempo, jfloat pitchSemi)
 {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setup(soundTouch, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
@@ -183,6 +186,24 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(
 	return bytesWritten;
 }
 
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setPitchSemi(
+		JNIEnv *env, jobject thiz, jint track, jfloat pitchSemi)
+{
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	setPitchSemi(soundTouch, pitchSemi);
+}
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempo(
+		JNIEnv *env, jobject thiz, jint track, jfloat tempo)
+{
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	setTempo(soundTouch, tempo);
+}
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempoChange(
+		JNIEnv *env, jobject thiz, jint track, jfloat tempoChange)
+{
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	setTempoChange(soundTouch, tempoChange);
+}
 static int putQueueInChar(jbyte* res, queue<signed char>* fBufferOut, int toPut)
 {
 	int count = 0;
@@ -315,6 +336,19 @@ static int write(const float *bufferIn, queue<signed char>* bufferOut,
 	return bufferOut->size() - oldSize;
 }
 
+static void setPitchSemi(SoundTouchStream& soundTouch, float pitchSemi)
+{
+	soundTouch.setPitchSemiTones(pitchSemi);
+}
+
+static void setTempo(SoundTouchStream& soundTouch, float tempo)
+{
+	soundTouch.setTempo(tempo);
+}
+static void setTempoChange(SoundTouchStream& soundTouch, float tempoChange)
+{
+	soundTouch.setTempoChange(tempoChange);
+}
 static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate,
 		int bytesPerSample, float tempoChange, float pitchSemi)
 {
