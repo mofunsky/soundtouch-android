@@ -1,6 +1,6 @@
 ## Process this file with automake to create Makefile.in
 ##
-## $Id: Makefile.am 138 2012-04-01 20:00:09Z oparviai $
+## $Id: Makefile.am 178 2014-01-06 18:40:23Z oparviai $
 ##
 ## This file is part of SoundTouch, an audio processing library for pitch/time adjustments
 ## 
@@ -28,8 +28,10 @@ noinst_HEADERS=AAFilter.h cpu_detect.h cpu_detect_x86.cpp FIRFilter.h RateTransp
 
 lib_LTLIBRARIES=libSoundTouch.la
 #
-libSoundTouch_la_SOURCES=AAFilter.cpp FIRFilter.cpp FIFOSampleBuffer.cpp RateTransposer.cpp SoundTouch.cpp TDStretch.cpp cpu_detect_x86.cpp BPMDetect.cpp PeakFinder.cpp
-
+libSoundTouch_la_SOURCES=AAFilter.cpp FIRFilter.cpp FIFOSampleBuffer.cpp    \
+    RateTransposer.cpp SoundTouch.cpp TDStretch.cpp cpu_detect_x86.cpp      \
+    BPMDetect.cpp PeakFinder.cpp InterpolateLinear.cpp InterpolateCubic.cpp \
+    InterpolateShannon.cpp
 
 # Compiler flags
 AM_CXXFLAGS=-O3 -fcheck-new -I../../include

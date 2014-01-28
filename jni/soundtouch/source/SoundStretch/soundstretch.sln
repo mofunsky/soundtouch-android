@@ -1,10 +1,11 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soundstretch", "soundstretch.vcxproj", "{5AACDFFA-D491-44B8-A332-DA7ACCAAF2AF}"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soundstretch", "soundstretch.vcproj", "{5AACDFFA-D491-44B8-A332-DA7ACCAAF2AF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509} = {68A5DD20-7057-448B-8FE0-B6AC8D205509}
+	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\SoundTouch\SoundTouch.vcxproj", "{68A5DD20-7057-448B-8FE0-B6AC8D205509}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\SoundTouch\SoundTouch.vcproj", "{68A5DD20-7057-448B-8FE0-B6AC8D205509}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

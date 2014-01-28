@@ -24,8 +24,8 @@ LOCAL_MODULE    := soundtouch
 LOCAL_SRC_FILES := soundtouch-jni.cpp soundtouch/source/SoundTouch/AAFilter.cpp  soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
                 soundtouch/source/SoundTouch/FIRFilter.cpp soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
                 soundtouch/source/SoundTouch/RateTransposer.cpp soundtouch/source/SoundTouch/SoundTouch.cpp \
-                soundtouch/source/SoundTouch/TDStretch.cpp soundtouch/source/SoundTouch/BPMDetect.cpp soundtouch/source/SoundTouch/PeakFinder.cpp
-
+                soundtouch/source/SoundTouch/TDStretch.cpp soundtouch/source/SoundTouch/BPMDetect.cpp soundtouch/source/SoundTouch/PeakFinder.cpp \
+				soundtouch/source/SoundTouch/InterpolateLinear.cpp soundtouch/source/SoundTouch/InterpolateCubic.cpp soundtouch/source/SoundTouch/InterpolateShannon.cpp
 # for native audio
 LOCAL_LDLIBS    += -lgcc 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/soundtouch/include

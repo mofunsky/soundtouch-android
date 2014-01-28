@@ -8,10 +8,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-04-04 22:47:28 +0300 (Wed, 04 Apr 2012) $
+// Last changed  : $Date: 2014-01-07 21:41:23 +0200 (Tue, 07 Jan 2014) $
 // File revision : $Revision: 4 $
 //
-// $Id: main.cpp 141 2012-04-04 19:47:28Z oparviai $
+// $Id: main.cpp 187 2014-01-07 19:41:23Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -44,13 +44,12 @@
 #include "WavFile.h"
 #include "SoundTouch.h"
 #include "BPMDetect.h"
-#include <iostream>
 
 using namespace soundtouch;
 using namespace std;
 
-// Processing chunk size
-#define BUFF_SIZE           2048
+// Processing chunk size (size chosen to be divisible by 2, 4, 6, 8, 10, 12, 14, 16 channels ...)
+#define BUFF_SIZE           6720
 
 #if _WIN32
     #include <io.h>
@@ -66,7 +65,7 @@ using namespace std;
 
 static const char _helloText[] = 
     "\n"
-    "   SoundStretch v%s -  Written by Olli Parviainen 2001 - 2012\n"
+    "   SoundStretch v%s -  Written by Olli Parviainen 2001 - 2014\n"
     "==================================================================\n"
     "author e-mail: <oparviai"
     "@"
@@ -135,9 +134,7 @@ static void setup(SoundTouch *pSoundTouch, const WavInFile *inFile, const RunPar
 
     pSoundTouch->setSetting(SETTING_USE_QUICKSEEK, params->quick);
     pSoundTouch->setSetting(SETTING_USE_AA_FILTER, !(params->noAntiAlias));
-	//fprintf(stderr, "SampleRate: %d, channels: %d", sampleRate, channels);
-	//cout << endl << "SampleRate: " << sampleRate << endl << "channels: " << channels << endl;
-	//system("pause");
+
     if (params->speech)
     {
         // use settings for speech processing
@@ -183,13 +180,13 @@ static void process(SoundTouch *pSoundTouch, WavInFile *inFile, WavOutFile *outF
     int nChannels;
     int buffSizeSamples;
     SAMPLETYPE sampleBuffer[BUFF_SIZE];
-	
+
     if ((inFile == NULL) || (outFile == NULL)) return;  // nothing to do.
 
     nChannels = (int)inFile->getNumChannels();
     assert(nChannels > 0);
     buffSizeSamples = BUFF_SIZE / nChannels;
-	
+
     // Process samples read from the input file
     while (inFile->eof() == 0)
     {
@@ -198,8 +195,7 @@ static void process(SoundTouch *pSoundTouch, WavInFile *inFile, WavOutFile *outF
         // Read a chunk of samples from the input file
         num = inFile->read(sampleBuffer, BUFF_SIZE);
         nSamples = num / (int)inFile->getNumChannels();
-		//cout << endl << "nSamples " << nSamples << endl << "buffSizeSamples: " << buffSizeSamples << endl;
-		//fprintf(stderr, "nSamples: %d, buffSizeSamples: %d", nSamples, buffSizeSamples);
+
         // Feed the samples into SoundTouch processor
         pSoundTouch->putSamples(sampleBuffer, nSamples);
 

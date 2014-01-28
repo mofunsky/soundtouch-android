@@ -1,6 +1,6 @@
 dnl SoundTouch configure.ac, by David W. Durham
 dnl
-dnl $Id: configure.ac 141 2012-04-04 19:47:28Z oparviai $
+dnl $Id: configure.ac 188 2014-01-07 19:58:54Z oparviai $
 dnl
 dnl This file is part of SoundTouch, an audio processing library for pitch/time adjustments
 dnl 
@@ -19,10 +19,11 @@ dnl this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 dnl Place - Suite 330, Boston, MA  02111-1307, USA
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(SoundTouch, 1.7.0, [http://www.surina.net/soundtouch])
+AC_INIT(SoundTouch, 1.8.0, [http://www.surina.net/soundtouch])
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER([include/soundtouch_config.h])
 AM_INIT_AUTOMAKE
+AM_SILENT_RULES([yes])
 #AC_DISABLE_SHARED	dnl This makes libtool only build static libs 
 AC_DISABLE_STATIC	dnl This makes libtool only build shared libs
 #AC_GNU_SOURCE 		dnl enable posix extensions in glibc
