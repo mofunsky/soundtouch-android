@@ -175,7 +175,7 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(
 	jboolean isCopy;
 	jbyte* ar = (jbyte*) env->GetPrimitiveArrayCritical(get, &isCopy);
 
-	memcpy(ar, res, toGet);
+	memcpy(ar, res, bytesWritten);
 
 	env->ReleasePrimitiveArrayCritical(get, ar, JNI_ABORT);
 
