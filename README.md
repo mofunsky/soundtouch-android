@@ -34,7 +34,7 @@ Example usage:
 //Set your audio processing requirements: track id, channels, samplingRate, bytesPerSample, 
 //                              tempoChange (1.0 is normal speed), pitchChange (in semi-tones)
 
-SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2);
+SoundTouch soundTouch = new SoundTouch(0, 2, 44100, 2, 1.0f, 2.0f);
 
 //byte[] sizes are recommended to be 8192 bytes.
 
@@ -66,7 +66,7 @@ To demonstrate, execute the following in your app:
 
 ```java
 //the last two parameters are speed of playback and pitch in semi-tones.
-SoundTouchPlayable st = new SoundTouchPlayable(fullPathToAudioFile, 0, 1.0f, 0);
+SoundTouchPlayable st = new SoundTouchPlayable(fullPathToAudioFile, 0, 1.0f, 0.0f);
 new Thread(st).start();
 st.play();
 ````
