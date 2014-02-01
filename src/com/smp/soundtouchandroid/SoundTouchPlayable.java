@@ -52,6 +52,11 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return paused;
 	}
+	
+	public long getDuration()
+	{
+		return decoder.getDuration();
+	}
 
 	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String fileName, int id, float tempo, float pitchSemi)
 			throws IOException
@@ -263,16 +268,12 @@ public class SoundTouchPlayable implements Runnable
 							@Override
 							public void run()
 							{
-								double cp;
-								long pd;
-								long d;
-								pd = decoder.getPlayedDuration();
-								d = decoder.getDuration();
-								cp = pd == 0 ? 0 : (double) pd / d;
-								playbackListener.onProgressChanged(cp);
+								long pd = decoder.getPlayedDuration();
+								long d = decoder.getDuration();
+								double cp = pd == 0 ? 0 : (double) pd / d;
+								playbackListener.onProgressChanged(id, cp, pd);
 							}
 						});
-
 					}
 				}
 
