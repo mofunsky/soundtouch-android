@@ -61,7 +61,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	public void seek(long timeInUs)
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-		currentTimeUs = timeInUs;
+		lastPresentationTime = currentTimeUs = timeInUs;
 		codec.flush();
 	}
 	@Override
