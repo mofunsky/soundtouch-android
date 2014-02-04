@@ -19,14 +19,25 @@ public class SoundTouchPlayable implements Runnable
 	private Object decodeLock;
 
 	private Handler handler;
-	private PlaybackProgressListener playbackListener;
+	private OnProgressChangedListener playbackListener;
 	private SoundTouch soundTouch;
-	private volatile AudioTrack track;
 	private Mp3Decoder decoder;
 	private String fileName;
 	private int id;
-
+	private boolean bypassSoundTouch;
+	
+	private volatile AudioTrack track;
 	private volatile boolean paused, finished;
+	
+	public interface OnProgressChangedListener
+	{
+		void onProgressChanged(int track, double currentPercentage, long position); 
+	}
+	
+	public void setBypassSoundTouch(boolean bypassSoundTouch)
+	{
+		this.bypassSoundTouch = bypassSoundTouch;
+	}
 
 	public void setTempo(float tempo)
 	{
@@ -42,7 +53,16 @@ public class SoundTouchPlayable implements Runnable
 	{
 		soundTouch.setPitchSemi(pitchSemi);
 	}
-
+	
+	public float getPitchSemi()
+	{
+		return soundTouch.getPitchSemi();
+	}
+	
+	public float getTempo()
+    {
+    	return soundTouch.getTempo();
+    }
 	public String getFileName()
 	{
 		return fileName;
@@ -58,7 +78,7 @@ public class SoundTouchPlayable implements Runnable
 		return decoder.getDuration();
 	}
 
-	public SoundTouchPlayable(PlaybackProgressListener playbackListener, String fileName, int id, float tempo, float pitchSemi)
+	public SoundTouchPlayable(OnProgressChangedListener playbackListener, String fileName, int id, float tempo, float pitchSemi)
 			throws IOException
 	{
 		this(fileName, id, tempo, pitchSemi);
@@ -303,11 +323,17 @@ public class SoundTouchPlayable implements Runnable
 
 		if (input != null)
 		{
-			if (putBytes)
-				soundTouch.putBytes(input);
+			if (bypassSoundTouch)
+			{
+				bytesReceived = input.length;
+			}
+			else
+			{
+				if (putBytes)
+					soundTouch.putBytes(input);
 
-			bytesReceived = soundTouch.getBytes(input);
-
+				bytesReceived = soundTouch.getBytes(input);
+			}
 			synchronized (trackLock)
 			{
 				track.write(input, 0, bytesReceived);

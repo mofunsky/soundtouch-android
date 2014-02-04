@@ -37,6 +37,15 @@ public class SoundTouch
     private static synchronized native final void setPitchSemi(int track, float pitchSemi);
     private static synchronized native final long getOutputBufferSize(int track);
     
+    public float getTempo()
+    {
+    	return tempo;
+    }
+    
+    public float getPitchSemi()
+    {
+    	return pitchSemi;
+    }
     public long getOutputBufferSize()
     {
     	return getOutputBufferSize(track);
@@ -44,16 +53,19 @@ public class SoundTouch
     
     public void setTempo(float tempo)
     {
+    	this.tempo = tempo;
     	setTempo(track, tempo);
     }
     public void setTempoChange(float tempoChange)
     {
     	if (tempoChange < -50 || tempoChange > 100)
     		throw new SoundTouchAndroidException("Tempo percentage must be between -50 and 100");
+    	this.tempo = 1.0f + 0.01f * tempoChange;
     	setTempoChange(track, tempoChange);
     }
     public void setPitchSemi(float pitchSemi)
     {
+    	this.pitchSemi = pitchSemi;
     	setPitchSemi(track, pitchSemi);
     }
     
