@@ -10,6 +10,7 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 public class SoundTouchPlayable implements Runnable
@@ -270,10 +271,10 @@ public class SoundTouchPlayable implements Runnable
 		do
 		{
 			pauseWait();
-
+			
 			if (finished)
 				break;
-
+			Log.i("SOUNDTOUCH", "buf: " + soundTouch.getOutputBufferSize());
 			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
 			{
 				synchronized (decodeLock)
