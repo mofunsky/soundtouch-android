@@ -274,7 +274,7 @@ public class SoundTouchPlayable implements Runnable
 			
 			if (finished)
 				break;
-			Log.i("SOUNDTOUCH", "buf: " + soundTouch.getOutputBufferSize());
+
 			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
 			{
 				synchronized (decodeLock)
