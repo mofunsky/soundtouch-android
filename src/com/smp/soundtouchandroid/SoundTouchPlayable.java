@@ -35,6 +35,14 @@ public class SoundTouchPlayable implements Runnable
 		void onProgressChanged(int track, double currentPercentage, long position); 
 	}
 	
+	public long getPlayedDuration()
+	{
+		synchronized (decodeLock)
+		{
+			return decoder.getPlayedDuration();
+		}
+	}
+	
 	public void setBypassSoundTouch(boolean bypassSoundTouch)
 	{
 		this.bypassSoundTouch = bypassSoundTouch;
@@ -68,7 +76,7 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return fileName;
 	}
-
+	
 	public boolean isPaused()
 	{
 		return paused;
