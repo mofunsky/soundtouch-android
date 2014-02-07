@@ -42,7 +42,16 @@ public class SoundTouchPlayable implements Runnable
 			return decoder.getPlayedDuration();
 		}
 	}
-
+	
+	public int getSamplingRate()
+	{
+		return soundTouch.getSamplingRate();
+	}
+	
+	public int getChannels()
+	{
+		return soundTouch.getChannels();
+	}
 	public void setBypassSoundTouch(boolean bypassSoundTouch)
 	{
 		this.bypassSoundTouch = bypassSoundTouch;

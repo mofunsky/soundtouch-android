@@ -10,6 +10,36 @@ public class SoundTouch
     }
 	
 	private int channels, samplingRate, bytesPerSample;
+	public int getChannels()
+	{
+		return channels;
+	}
+
+	public void setChannels(int channels)
+	{
+		this.channels = channels;
+	}
+
+	public int getSamplingRate()
+	{
+		return samplingRate;
+	}
+
+	public void setSamplingRate(int samplingRate)
+	{
+		this.samplingRate = samplingRate;
+	}
+
+	public int getBytesPerSample()
+	{
+		return bytesPerSample;
+	}
+
+	public void setBytesPerSample(int bytesPerSample)
+	{
+		this.bytesPerSample = bytesPerSample;
+	}
+
 	private float tempo;
 	private float pitchSemi;
 	private int track;
