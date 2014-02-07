@@ -26,15 +26,15 @@ public class SoundTouchPlayable implements Runnable
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
-	
+
 	private volatile AudioTrack track;
 	private volatile boolean paused, finished;
-	
+
 	public interface OnProgressChangedListener
 	{
-		void onProgressChanged(int track, double currentPercentage, long position); 
+		void onProgressChanged(int track, double currentPercentage, long position);
 	}
-	
+
 	public long getPlayedDuration()
 	{
 		synchronized (decodeLock)
@@ -42,7 +42,7 @@ public class SoundTouchPlayable implements Runnable
 			return decoder.getPlayedDuration();
 		}
 	}
-	
+
 	public void setBypassSoundTouch(boolean bypassSoundTouch)
 	{
 		this.bypassSoundTouch = bypassSoundTouch;
@@ -62,26 +62,27 @@ public class SoundTouchPlayable implements Runnable
 	{
 		soundTouch.setPitchSemi(pitchSemi);
 	}
-	
+
 	public float getPitchSemi()
 	{
 		return soundTouch.getPitchSemi();
 	}
-	
+
 	public float getTempo()
-    {
-    	return soundTouch.getTempo();
-    }
+	{
+		return soundTouch.getTempo();
+	}
+
 	public String getFileName()
 	{
 		return fileName;
 	}
-	
+
 	public boolean isPaused()
 	{
 		return paused;
 	}
-	
+
 	public long getDuration()
 	{
 		return decoder.getDuration();
@@ -173,23 +174,26 @@ public class SoundTouchPlayable implements Runnable
 		}
 	}
 
-	public void seekTo(double percentage) // 0.0 - 1.0
+	public void seekTo(double percentage, boolean shouldFlush) // 0.0 - 1.0
 	{
 		long timeInUs = (long) (decoder.getDuration() * percentage);
-		seekTo(timeInUs);
+		seekTo(timeInUs, shouldFlush);
 	}
 
-	public void seekTo(long timeInUs)
+	public void seekTo(long timeInUs, boolean shouldFlush)
 	{
 		if (timeInUs < 0 || timeInUs >= decoder.getDuration())
 			throw new SoundTouchAndroidException("" + timeInUs + " Not a valid seek time.");
 
-		this.pause();
-		synchronized (trackLock)
+		if (shouldFlush)
 		{
-			track.flush();
+			this.pause();
+			synchronized (trackLock)
+			{
+				track.flush();
+			}
+			soundTouch.clearBuffer();
 		}
-		soundTouch.clearBuffer();
 		synchronized (decodeLock)
 		{
 			decoder.seek(timeInUs);
@@ -279,7 +283,7 @@ public class SoundTouchPlayable implements Runnable
 		do
 		{
 			pauseWait();
-			
+
 			if (finished)
 				break;
 
