@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import android.annotation.SuppressLint;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaCodec;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaExtractor;
@@ -42,6 +43,25 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	{
 		extractor = new MediaExtractor();
 		extractor.setDataSource(fullPath);
+
+		format = extractor.getTrackFormat(0);
+		String mime = format.getString(MediaFormat.KEY_MIME);
+		durationUs = format.getLong(MediaFormat.KEY_DURATION);
+
+		codec = MediaCodec.createDecoderByType(mime);
+		codec.configure(format, null, null, 0);
+		codec.start();
+		codecInputBuffers = codec.getInputBuffers();
+		codecOutputBuffers = codec.getOutputBuffers();
+
+		extractor.selectTrack(0);
+		info = new MediaCodec.BufferInfo();
+	}
+	@SuppressLint("NewApi")
+	public MediaCodecMp3Decoder(AssetFileDescriptor sampleFD) throws IOException
+	{
+		extractor = new MediaExtractor();
+		extractor.setDataSource(sampleFD.getFileDescriptor(), sampleFD.getStartOffset(), sampleFD.getLength());
 
 		format = extractor.getTrackFormat(0);
 		String mime = format.getString(MediaFormat.KEY_MIME);
