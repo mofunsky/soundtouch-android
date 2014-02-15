@@ -191,7 +191,7 @@ public class SoundTouchPlayable implements Runnable
 
 	public void seekTo(long timeInUs, boolean shouldFlush)
 	{
-		if (timeInUs < 0 || timeInUs >= decoder.getDuration())
+		if (timeInUs < 0 || timeInUs > decoder.getDuration())
 			throw new SoundTouchAndroidException("" + timeInUs + " Not a valid seek time.");
 
 		if (shouldFlush)
@@ -291,8 +291,6 @@ public class SoundTouchPlayable implements Runnable
 
 		do
 		{
-			pauseWait();
-
 			if (finished)
 				break;
 
@@ -325,6 +323,7 @@ public class SoundTouchPlayable implements Runnable
 			{
 				processChunk(input, false);
 			}
+			pauseWait();
 		}
 		while (!decoder.sawOutputEOS());
 
