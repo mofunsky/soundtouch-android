@@ -33,6 +33,7 @@ public class SoundTouchPlayable implements Runnable
 	public interface OnProgressChangedListener
 	{
 		void onProgressChanged(int track, double currentPercentage, long position);
+		void onTrackFinished(int track);
 	}
 
 	public long getPlayedDuration()
@@ -158,8 +159,18 @@ public class SoundTouchPlayable implements Runnable
 			while (!finished)
 			{
 				playFile();
-
 				paused = true;
+				handler.post(new Runnable() {
+
+					@Override
+					public void run()
+					{
+						if (playbackListener != null)
+						{
+							playbackListener.onTrackFinished(id);
+						}
+					}
+				});
 				decoder.resetEOS();
 			}
 		}
@@ -213,7 +224,6 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return track.getAudioSessionId();
 	}
-
 	/*
 	 * public AudioTrack getAudioTrack() { return track; }
 	 */
@@ -291,6 +301,7 @@ public class SoundTouchPlayable implements Runnable
 
 		do
 		{
+			pauseWait();
 			if (finished)
 				break;
 
@@ -323,7 +334,6 @@ public class SoundTouchPlayable implements Runnable
 			{
 				processChunk(input, false);
 			}
-			pauseWait();
 		}
 		while (!decoder.sawOutputEOS());
 
