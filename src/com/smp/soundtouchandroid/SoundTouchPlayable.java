@@ -33,7 +33,7 @@ public class SoundTouchPlayable implements Runnable
 	public interface OnProgressChangedListener
 	{
 		void onProgressChanged(int track, double currentPercentage, long position);
-		void onTrackFinished(int track);
+		void onTrackEnd(int track);
 	}
 
 	public long getPlayedDuration()
@@ -165,9 +165,9 @@ public class SoundTouchPlayable implements Runnable
 					@Override
 					public void run()
 					{
-						if (playbackListener != null)
+						if (playbackListener != null && !finished)
 						{
-							playbackListener.onTrackFinished(id);
+							playbackListener.onTrackEnd(id);
 						}
 					}
 				});
