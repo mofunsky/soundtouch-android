@@ -22,7 +22,7 @@ distrubted under LGPL license.
 
 Currently capable of time-stretching and pitch shifting.
 
-It is alpha, use at your own risk. Please see issues for a list of known limitations.
+Please see issues for a list of known limitations.
 
 Currently only supports Androids with an FPU (armeabi-v7a).
 
@@ -59,7 +59,7 @@ do
 soundTouch.clearBuffer()
 ```
 
-Take a look at the (incomplete) SoundTouchPlayable to see how to use SoundTouch-Android library
+Take a look at the SoundTouchPlayable to see how to use SoundTouch-Android library
 to decode an audio file and stream to an AudioTrack.
 
 To demonstrate, execute the following in your app:
