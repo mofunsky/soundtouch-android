@@ -33,6 +33,7 @@ public class SoundTouchPlayable implements Runnable
 	public interface OnProgressChangedListener
 	{
 		void onProgressChanged(int track, double currentPercentage, long position);
+
 		void onTrackEnd(int track);
 	}
 
@@ -43,16 +44,22 @@ public class SoundTouchPlayable implements Runnable
 			return decoder.getPlayedDuration();
 		}
 	}
-	
+
+	public boolean isInitialized()
+	{
+		return track.getState() == AudioTrack.STATE_INITIALIZED;
+	}
+
 	public int getSamplingRate()
 	{
 		return soundTouch.getSamplingRate();
 	}
-	
+
 	public int getChannels()
 	{
 		return soundTouch.getChannels();
 	}
+
 	public void setBypassSoundTouch(boolean bypassSoundTouch)
 	{
 		this.bypassSoundTouch = bypassSoundTouch;
@@ -160,17 +167,17 @@ public class SoundTouchPlayable implements Runnable
 			{
 				playFile();
 				paused = true;
-				handler.post(new Runnable() {
-
-					@Override
-					public void run()
+				if (playbackListener != null && !finished)
+				{
+					handler.post(new Runnable()
 					{
-						if (playbackListener != null && !finished)
+						@Override
+						public void run()
 						{
 							playbackListener.onTrackEnd(id);
 						}
-					}
-				});
+					});
+				}
 				decoder.resetEOS();
 			}
 		}
@@ -224,6 +231,7 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return track.getAudioSessionId();
 	}
+
 	/*
 	 * public AudioTrack getAudioTrack() { return track; }
 	 */

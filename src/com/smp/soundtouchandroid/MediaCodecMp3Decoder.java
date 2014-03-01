@@ -15,7 +15,7 @@ import static com.smp.soundtouchandroid.Constants.*;
 @SuppressLint("NewApi")
 public class MediaCodecMp3Decoder implements Mp3Decoder
 {
-	private static final long TIMEOUT_US = 100000;
+	private static final long TIMEOUT_US = 1000000;
 	
 	private long durationUs; //track duration in us
 	private volatile long lastPresentationTime;
@@ -112,8 +112,8 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		}
 		else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
-			final MediaFormat oformat = codec.getOutputFormat();
-			Log.d("MP3", "Output format has changed to " + oformat);
+			format = codec.getOutputFormat();
+			Log.d("MP3", "Output format has changed to " + format);
 		}
 		
 		return chunk;
@@ -178,6 +178,7 @@ private void advanceInput()
 	public void resetEOS()
 	{
 		sawOutputEOS = false;
+		info.flags = 0;
 	}
 
 	@Override
