@@ -18,7 +18,7 @@ limitations under the License.
 
 
 An Android wrapper for the the SoundTouch Audio Processing Library by Olli Parviainen 2001-2012,
-distrubted under LGPL license.
+distributed under the LGPL license.
 
 Currently capable of time-stretching and pitch shifting.
 
