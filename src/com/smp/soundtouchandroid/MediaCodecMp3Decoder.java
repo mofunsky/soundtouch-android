@@ -15,7 +15,7 @@ import static com.smp.soundtouchandroid.Constants.*;
 @SuppressLint("NewApi")
 public class MediaCodecMp3Decoder implements Mp3Decoder
 {
-	private static final long TIMEOUT_US = 1000000;
+	private static final long TIMEOUT_US = 200000;
 	
 	private long durationUs; //track duration in us
 	private volatile long lastPresentationTime;
