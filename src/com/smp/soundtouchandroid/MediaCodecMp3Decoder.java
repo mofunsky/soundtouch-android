@@ -31,13 +31,18 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 
 	public int getSamplingRate()
 	{
-		return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+		if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE))
+			return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+		throw new SoundTouchAndroidException("Not a valid audio file");
 	}
 	
 	public int getChannels()
 	{
-		return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+		if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT))
+			return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+		throw new SoundTouchAndroidException("Not a valid audio file");
 	}
+	
 	@SuppressLint("NewApi")
 	public MediaCodecMp3Decoder(String fullPath) throws IOException
 	{

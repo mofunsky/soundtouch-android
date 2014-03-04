@@ -113,7 +113,7 @@ public class SoundTouchPlayable implements Runnable
 	}
 
 	public SoundTouchPlayable(String fileName, int id, float tempo, float pitchSemi)
-			throws IOException
+			throws IOException, SoundTouchAndroidException
 	{
 		if (Build.VERSION.SDK_INT >= 16)
 		{
