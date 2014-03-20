@@ -196,8 +196,10 @@ public class SoundTouchPlayable implements Runnable
 				track.flush();
 				track.release();
 			}
-
-			decoder.close();
+			synchronized (decodeLock)
+			{
+				decoder.close();
+			}
 		}
 	}
 
