@@ -2,6 +2,7 @@ package com.smp.soundtouchandroid;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.content.res.AssetFileDescriptor;
@@ -15,6 +16,19 @@ import static com.smp.soundtouchandroid.Constants.*;
 @SuppressLint("NewApi")
 public class MediaCodecMp3Decoder implements Mp3Decoder
 {
+	public static String getExtension(String uri) {
+        if (uri == null) {
+            return null;
+        }
+
+        int dot = uri.lastIndexOf(".");
+        if (dot >= 0) {
+            return uri.substring(dot);
+        } else {
+            // No extension.
+            return "";
+        }
+    }
 	private static final long TIMEOUT_US = 200000;
 	
 	private long durationUs; //track duration in us
@@ -29,23 +43,27 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	private byte[] chunk;
 	private volatile boolean sawOutputEOS;
 
-	public int getSamplingRate()
+	public int getSamplingRate() throws IOException
 	{
 		if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE))
 			return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-		throw new SoundTouchAndroidException("Not a valid audio file");
+		throw new IOException("Not a valid audio file");
 	}
 	
-	public int getChannels()
+	public int getChannels() throws IOException
 	{
 		if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT))
 			return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
-		throw new SoundTouchAndroidException("Not a valid audio file");
+		throw new IOException("Not a valid audio file");
 	}
 	
 	@SuppressLint("NewApi")
 	public MediaCodecMp3Decoder(String fullPath) throws IOException
 	{
+		Locale locale = Locale.getDefault();
+		if (getExtension(fullPath).toLowerCase(locale).equals(".wma"))
+			throw new IOException("WMA file not supported");
+		
 		extractor = new MediaExtractor();
 		extractor.setDataSource(fullPath);
 
@@ -127,7 +145,6 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	@Override
 	public void close()
 	{
-		codec.flush();
 		codec.stop();
 		codec.release();
 		extractor.release();

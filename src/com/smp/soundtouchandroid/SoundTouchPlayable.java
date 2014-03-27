@@ -284,7 +284,7 @@ public class SoundTouchPlayable implements Runnable
 		finished = true;
 	}
 
-	private void setupAudio(int id, float tempo, float pitchSemi)
+	private void setupAudio(int id, float tempo, float pitchSemi) throws IOException
 	{
 		int channels = decoder.getChannels();
 		int samplingRate = decoder.getSamplingRate();
