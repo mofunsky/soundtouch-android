@@ -3,7 +3,7 @@ package com.smp.soundtouchandroid;
 import java.io.IOException;
 
 
-public interface Mp3Decoder
+public interface AudioDecoder
 {
 	byte[] decodeChunk() throws SoundTouchAndroidException;
 	void close();

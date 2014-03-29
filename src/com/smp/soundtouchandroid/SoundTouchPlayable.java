@@ -22,7 +22,7 @@ public class SoundTouchPlayable implements Runnable
 	private Handler handler;
 	private OnProgressChangedListener playbackListener;
 	private SoundTouch soundTouch;
-	private Mp3Decoder decoder;
+	private AudioDecoder decoder;
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
@@ -117,11 +117,11 @@ public class SoundTouchPlayable implements Runnable
 	{
 		if (Build.VERSION.SDK_INT >= 16)
 		{
-			decoder = new MediaCodecMp3Decoder(fileName);
+			decoder = new MediaCodecAudioDecoder(fileName);
 		}
 		else
 		{
-			decoder = new JLayerMp3Decoder(fileName);
+			decoder = new JLayerAudioDecoder(fileName);
 		}
 
 		this.fileName = fileName;

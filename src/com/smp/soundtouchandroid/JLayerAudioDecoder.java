@@ -16,9 +16,9 @@ import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.Header;
 import javazoom.jl.decoder.SampleBuffer;
 
-public class JLayerMp3Decoder implements Mp3Decoder
+public class JLayerAudioDecoder implements AudioDecoder
 {
-	public JLayerMp3Decoder(String path) throws FileNotFoundException
+	public JLayerAudioDecoder(String path) throws FileNotFoundException
 	{
 		file = new File(path);
 		inputStream = new BufferedInputStream(new FileInputStream(file), 8 * 1024);
@@ -73,7 +73,7 @@ public class JLayerMp3Decoder implements Mp3Decoder
 		}
 	}
 
-	public JLayerMp3Decoder(String path, long position)
+	public JLayerAudioDecoder(String path, long position)
 	{
 		// TODO
 	}

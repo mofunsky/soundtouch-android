@@ -14,7 +14,7 @@ import android.util.Log;
 import static com.smp.soundtouchandroid.Constants.*;
 
 @SuppressLint("NewApi")
-public class MediaCodecMp3Decoder implements Mp3Decoder
+public class MediaCodecAudioDecoder implements AudioDecoder
 {
 	public static String getExtension(String uri) {
         if (uri == null) {
@@ -58,7 +58,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 	}
 	
 	@SuppressLint("NewApi")
-	public MediaCodecMp3Decoder(String fullPath) throws IOException
+	public MediaCodecAudioDecoder(String fullPath) throws IOException
 	{
 		Locale locale = Locale.getDefault();
 		if (getExtension(fullPath).toLowerCase(locale).equals(".wma"))
@@ -81,7 +81,7 @@ public class MediaCodecMp3Decoder implements Mp3Decoder
 		info = new MediaCodec.BufferInfo();
 	}
 	@SuppressLint("NewApi")
-	public MediaCodecMp3Decoder(AssetFileDescriptor sampleFD) throws IOException
+	public MediaCodecAudioDecoder(AssetFileDescriptor sampleFD) throws IOException
 	{
 		extractor = new MediaExtractor();
 		extractor.setDataSource(sampleFD.getFileDescriptor(), sampleFD.getStartOffset(), sampleFD.getLength());
