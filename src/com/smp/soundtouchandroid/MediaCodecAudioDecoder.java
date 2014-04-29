@@ -43,17 +43,28 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	private byte[] chunk;
 	private volatile boolean sawOutputEOS;
 
-	public int getSamplingRate() throws IOException
-	{
-		if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE))
-			return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-		throw new IOException("Not a valid audio file");
-	}
-	
 	public int getChannels() throws IOException
 	{
 		if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT))
 			return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+		throw new IOException("Not a valid audio file");
+	}
+
+	public long getDuration()
+	{
+		return durationUs;
+	}
+
+	@Override
+	public long getPlayedDuration()
+	{
+		return currentTimeUs;
+	}
+
+	public int getSamplingRate() throws IOException
+	{
+		if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE))
+			return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
 		throw new IOException("Not a valid audio file");
 	}
 	
@@ -101,12 +112,13 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	}
 	
 	@Override
-	public void seek(long timeInUs)
+	public void close()
 	{
-		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-		lastPresentationTime = currentTimeUs = timeInUs;
-		codec.flush();
+		codec.stop();
+		codec.release();
+		extractor.release();
 	}
+
 	@Override
 	public byte[] decodeChunk()
 	{
@@ -118,9 +130,9 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			int outputBufIndex = res;
 			ByteBuffer buf = codecOutputBuffers[outputBufIndex];
 			if(chunk == null || chunk.length != info.size)
- 			{
- 				chunk = new byte[info.size];
- 			}
+			{
+				chunk = new byte[info.size];
+			}
 			buf.get(chunk);
 			buf.clear();
 			codec.releaseOutputBuffer(outputBufIndex, false);
@@ -143,60 +155,6 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	}
 
 	@Override
-	public void close()
-	{
-		codec.stop();
-		codec.release();
-		extractor.release();
-	}
-
-private void advanceInput()
-{
-	boolean sawInputEOS = false;
-
-	int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
-	if (inputBufIndex >= 0)
-	{
-		ByteBuffer dstBuf = codecInputBuffers[inputBufIndex];
-
-		int sampleSize = extractor.readSampleData(dstBuf, 0);
-		long presentationTimeUs = 0;
-
-		if (sampleSize < 0)
-		{
-			sawInputEOS = true;
-			sampleSize = 0;
-		}
-		else
-		{
-			presentationTimeUs = extractor.getSampleTime();
-			currentTimeUs += presentationTimeUs - lastPresentationTime;
-			lastPresentationTime = presentationTimeUs;
-		}
-
-		codec.queueInputBuffer(inputBufIndex,
-				0,
-				sampleSize,
-				presentationTimeUs,
-				sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
-		if (!sawInputEOS)
-		{
-			extractor.advance();
-		}
-	}
-}
-	@Override
-	public boolean sawOutputEOS()
-	{
-		return sawOutputEOS;
-	}
-
-	public long getDuration()
-	{
-		return durationUs;
-	}
-
-	@Override
 	public void resetEOS()
 	{
 		sawOutputEOS = false;
@@ -204,9 +162,52 @@ private void advanceInput()
 	}
 
 	@Override
-	public long getPlayedDuration()
+	public boolean sawOutputEOS()
 	{
-		return currentTimeUs;
+		return sawOutputEOS;
+	}
+
+	@Override
+	public void seek(long timeInUs)
+	{
+		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+		lastPresentationTime = currentTimeUs = timeInUs;
+		codec.flush();
+	}
+	private void advanceInput()
+	{
+		boolean sawInputEOS = false;
+	
+		int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_US);
+		if (inputBufIndex >= 0)
+		{
+			ByteBuffer dstBuf = codecInputBuffers[inputBufIndex];
+	
+			int sampleSize = extractor.readSampleData(dstBuf, 0);
+			long presentationTimeUs = 0;
+	
+			if (sampleSize < 0)
+			{
+				sawInputEOS = true;
+				sampleSize = 0;
+			}
+			else
+			{
+				presentationTimeUs = extractor.getSampleTime();
+				currentTimeUs += presentationTimeUs - lastPresentationTime;
+				lastPresentationTime = presentationTimeUs;
+			}
+	
+			codec.queueInputBuffer(inputBufIndex,
+					0,
+					sampleSize,
+					presentationTimeUs,
+					sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
+			if (!sawInputEOS)
+			{
+				extractor.advance();
+			}
+		}
 	}
 
 }

@@ -9,6 +9,4 @@ public class SoundTouchAndroidException extends RuntimeException
 
 	private static final long serialVersionUID = -772966743102678592L;
 	
-	
-
 }

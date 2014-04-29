@@ -16,6 +16,8 @@ import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.Header;
 import javazoom.jl.decoder.SampleBuffer;
 
+//Not well supported.
+
 public class JLayerAudioDecoder implements AudioDecoder
 {
 	public JLayerAudioDecoder(String path) throws FileNotFoundException

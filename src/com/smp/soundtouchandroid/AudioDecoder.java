@@ -5,14 +5,13 @@ import java.io.IOException;
 
 public interface AudioDecoder
 {
-	byte[] decodeChunk() throws SoundTouchAndroidException;
-	void close();
-	boolean sawOutputEOS();
 	int getChannels() throws IOException;
-	int getSamplingRate() throws IOException;
-	void seek(long timeInUs);
-	long getDuration();
 	long getPlayedDuration();
-	void resetEOS();
-	
+	long getDuration();
+	int getSamplingRate() throws IOException;
+	void close();
+	byte[] decodeChunk() throws SoundTouchAndroidException;
+	boolean sawOutputEOS();
+	void seek(long timeInUs);
+	void resetEOS();	
 }
