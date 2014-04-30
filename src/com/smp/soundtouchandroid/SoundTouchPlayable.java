@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 public class SoundTouchPlayable implements Runnable
 {
+	private static final long NOT_SET = Long.MIN_VALUE;
+	
 	private Object pauseLock;
 	private Object trackLock;
 	private Object decodeLock;
@@ -26,7 +28,9 @@ public class SoundTouchPlayable implements Runnable
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
-
+	
+	private volatile long loopStart = NOT_SET;
+	private volatile long loopEnd = NOT_SET;
 	private volatile AudioTrack track;
 	private volatile boolean paused, finished;
 
@@ -64,7 +68,11 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return soundTouch.getPitchSemi();
 	}
-
+	
+	public long getPlaybackLimit()
+	{
+		return loopEnd;
+	}
 	public int getSamplingRate()
 	{
 		return soundTouch.getSamplingRate();
@@ -80,9 +88,22 @@ public class SoundTouchPlayable implements Runnable
 		return soundTouch.getTempo();
 	}
 
+	public long getLoopEnd() {
+		return loopEnd;
+	}
+
+	public long getLoopStart() {
+		return loopStart;
+	}
+
 	public boolean isInitialized()
 	{
 		return track.getState() == AudioTrack.STATE_INITIALIZED;
+	}
+
+	public boolean isLooping() 
+	{
+		return loopStart != NOT_SET && loopEnd != NOT_SET;
 	}
 
 	public boolean isPaused()
@@ -95,11 +116,26 @@ public class SoundTouchPlayable implements Runnable
 		this.bypassSoundTouch = bypassSoundTouch;
 	}
 
+	public void setLoopEnd(long loopEnd) {
+		long pd = decoder.getPlayedDuration();
+		if (loopStart != NOT_SET && pd <= loopStart)
+			throw new SoundTouchAndroidException("Invalid Loop Time, loop start must be < loop end");
+		this.loopEnd = loopEnd;
+	}
+
+	public void setLoopStart(long loopStart) 
+	{	
+		long pd = decoder.getPlayedDuration();
+		if (loopEnd != NOT_SET && pd >= loopEnd)
+			throw new SoundTouchAndroidException("Invalid Loop Time, loop start must be < loop end");
+		this.loopStart = loopStart;
+	}
+
 	public void setPitchSemi(float pitchSemi)
 	{
 		soundTouch.setPitchSemi(pitchSemi);
 	}
-
+	
 	public void setTempo(float tempo)
 	{
 		soundTouch.setTempo(tempo);
@@ -294,7 +330,10 @@ public class SoundTouchPlayable implements Runnable
 			pauseWait();
 			if (finished)
 				break;
-	
+			
+			if (isLooping() && decoder.getPlayedDuration() >= loopEnd) 
+				seekTo(loopStart, false);
+			
 			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
 			{
 				synchronized (decodeLock)
@@ -317,7 +356,7 @@ public class SoundTouchPlayable implements Runnable
 						});
 					}
 				}
-	
+			
 				processChunk(input, true);
 			}
 			else
@@ -352,7 +391,7 @@ public class SoundTouchPlayable implements Runnable
 			{
 				if (putBytes)
 					soundTouch.putBytes(input);
-	
+				//Log.d("bytes", String.valueOf(input.length));
 				bytesReceived = soundTouch.getBytes(input);
 			}
 			synchronized (trackLock)
