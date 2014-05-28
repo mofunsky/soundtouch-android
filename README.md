@@ -71,7 +71,8 @@ SoundTouchPlayable st = new SoundTouchPlayable(fullPathToAudioFile, 0, 1.0f, 0.0
 new Thread(st).start();
 st.play();
 ````
-The track can be paused or stopped at a later time:
+The track can be paused or stopped at a later time.
+Stop should always be called on a SoundTouchPlayable after use to release resources.
 
 ```java
 st.pause();
