@@ -20,8 +20,6 @@ limitations under the License.
 An Android wrapper for the the SoundTouch Audio Processing Library by Olli Parviainen 2001-2012,
 distributed under the LGPL license.
 
-Currently in alpha, use at your own risk.
-
 Currently capable of time-stretching and pitch shifting.
 
 Please see issues for a list of known limitations.
@@ -61,8 +59,9 @@ do
 soundTouch.clearBuffer()
 ```
 
-Take a look at the SoundTouchPlayable to see how to use SoundTouch-Android library
-to decode an audio file and stream to an AudioTrack.
+Take a look at SoundTouchPlayable.java for a ready made implementation of a time-stretching, pitch-shifting
+Runnable that streams a decoded audio file to an AudioTrack. This implementation has been tested on Android API >= 16,
+lower API level support via JLayer decoding is very rough and alpha quality.
 
 To demonstrate, execute the following in your app:
 
