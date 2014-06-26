@@ -20,7 +20,7 @@ public class SoundTouchPlayable implements Runnable
 	private Handler handler;
 	private OnProgressChangedListener playbackListener;
 	private SoundTouch soundTouch;
-	private AudioDecoder decoder;
+
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
@@ -29,6 +29,7 @@ public class SoundTouchPlayable implements Runnable
 	private volatile long loopStart = NOT_SET;
 	private volatile long loopEnd = NOT_SET;
 	private volatile AudioTrack track;
+	private volatile AudioDecoder decoder;
 	private volatile boolean paused, finished;
 
 	public interface OnProgressChangedListener
@@ -121,6 +122,11 @@ public class SoundTouchPlayable implements Runnable
 	public boolean isInitialized()
 	{
 		return track.getState() == AudioTrack.STATE_INITIALIZED;
+	}
+	
+	public boolean isFinished()
+	{
+		return finished;
 	}
 
 	public boolean isLooping()
@@ -249,6 +255,7 @@ public class SoundTouchPlayable implements Runnable
 			e.printStackTrace();
 		} finally
 		{
+			finished = true;
 			soundTouch.clearBuffer();
 
 			synchronized (trackLock)
@@ -256,6 +263,7 @@ public class SoundTouchPlayable implements Runnable
 				track.pause();
 				track.flush();
 				track.release();
+				track = null;
 			}
 			synchronized (decodeLock)
 			{
@@ -404,10 +412,13 @@ public class SoundTouchPlayable implements Runnable
 				@Override
 				public void run()
 				{
-					long pd = decoder.getPlayedDuration();
-					long d = decoder.getDuration();
-					double cp = pd == 0 ? 0 : (double) pd / d;
-					playbackListener.onProgressChanged(id, cp, pd);
+					if (!finished)
+					{
+						long pd = decoder.getPlayedDuration();
+						long d = decoder.getDuration();
+						double cp = pd == 0 ? 0 : (double) pd / d;
+						playbackListener.onProgressChanged(id, cp, pd);
+					}
 				}
 			});
 		}
