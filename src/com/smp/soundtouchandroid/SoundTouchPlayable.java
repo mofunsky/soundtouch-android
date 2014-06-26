@@ -260,6 +260,7 @@ public class SoundTouchPlayable implements Runnable
 			synchronized (decodeLock)
 			{
 				decoder.close();
+				decoder = null;
 			}
 		}
 	}

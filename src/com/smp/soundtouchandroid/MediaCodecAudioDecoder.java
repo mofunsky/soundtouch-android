@@ -124,7 +124,9 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	{
 		codec.stop();
 		codec.release();
+		codec = null;
 		extractor.release();
+		extractor = null;
 	}
 
 	@Override
