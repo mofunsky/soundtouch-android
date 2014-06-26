@@ -24,7 +24,7 @@ public class SoundTouchPlayable implements Runnable
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
-	
+
 	private volatile long bytesWritten;
 	private volatile long loopStart = NOT_SET;
 	private volatile long loopEnd = NOT_SET;
@@ -86,19 +86,23 @@ public class SoundTouchPlayable implements Runnable
 	{
 		return track.getAudioSessionId();
 	}
-	
+
 	public long getSoundTouchBufferSize()
 	{
 		return soundTouch.getOutputBufferSize();
 	}
-	
+
 	public long getAudioTrackBufferSize()
 	{
-		long playbackHead = track.getPlaybackHeadPosition() & 0xffffffffL; 
-		return bytesWritten - playbackHead 
-				* DEFAULT_BYTES_PER_SAMPLE * getChannels();
+		synchronized (trackLock)
+		{
+			long playbackHead = track.getPlaybackHeadPosition() & 0xffffffffL;
+			return bytesWritten - playbackHead * DEFAULT_BYTES_PER_SAMPLE
+					* getChannels();
+		}
+
 	}
-	
+
 	public float getTempo()
 	{
 		return soundTouch.getTempo();
@@ -234,7 +238,10 @@ public class SoundTouchPlayable implements Runnable
 						}
 					});
 				}
-				decoder.resetEOS();
+				synchronized (decodeLock)
+				{
+					decoder.resetEOS();
+				}
 			}
 		} catch (SoundTouchAndroidException e)
 		{
@@ -256,7 +263,7 @@ public class SoundTouchPlayable implements Runnable
 			}
 		}
 	}
-	
+
 	public void clearLoopPoints()
 	{
 		loopStart = NOT_SET;
