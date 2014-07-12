@@ -9,36 +9,31 @@ import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
 
-public class SoundTouchPlayable implements Runnable
+public abstract class SoundTouchPlayableBase implements Runnable
 {
 	private static final long NOT_SET = Long.MIN_VALUE;
 
-	private Object pauseLock;
-	private Object trackLock;
-	private Object decodeLock;
-
+	protected Object pauseLock;
+	protected Object sinkLock;
+	protected Object decodeLock;
+	
+	protected volatile long bytesWritten;
+	
+	protected SoundTouch soundTouch;
+	protected volatile AudioDecoder decoder;
+	
 	private Handler handler;
 	private OnProgressChangedListener playbackListener;
-	private SoundTouch soundTouch;
-
+	
 	private String fileName;
 	private int id;
 	private boolean bypassSoundTouch;
 
-	private volatile long bytesWritten;
 	private volatile long loopStart = NOT_SET;
 	private volatile long loopEnd = NOT_SET;
-	private volatile AudioTrack track;
-	private volatile AudioDecoder decoder;
+	private volatile AudioSink sink;
+	
 	private volatile boolean paused, finished;
-
-	public interface OnProgressChangedListener
-	{
-		void onProgressChanged(int track, double currentPercentage,
-				long position);
-
-		void onTrackEnd(int track);
-	}
 
 	public long getBytesWritten()
 	{
@@ -83,26 +78,14 @@ public class SoundTouchPlayable implements Runnable
 		return soundTouch.getSamplingRate();
 	}
 
-	public int getSessionId()
-	{
-		return track.getAudioSessionId();
-	}
+	
 
 	public long getSoundTouchBufferSize()
 	{
 		return soundTouch.getOutputBufferSize();
 	}
 
-	public long getAudioTrackBufferSize()
-	{
-		synchronized (trackLock)
-		{
-			long playbackHead = track.getPlaybackHeadPosition() & 0xffffffffL;
-			return bytesWritten - playbackHead * DEFAULT_BYTES_PER_SAMPLE
-					* getChannels();
-		}
-
-	}
+	
 
 	public float getTempo()
 	{
@@ -119,10 +102,7 @@ public class SoundTouchPlayable implements Runnable
 		return loopStart;
 	}
 
-	public boolean isInitialized()
-	{
-		return track.getState() == AudioTrack.STATE_INITIALIZED;
-	}
+	
 	
 	public boolean isFinished()
 	{
@@ -177,18 +157,8 @@ public class SoundTouchPlayable implements Runnable
 		soundTouch.setTempoChange(tempoChange);
 	}
 
-	/*
-	 * public AudioTrack getAudioTrack() { return track; }
-	 */
-	public void setVolume(float left, float right)
-	{
-		synchronized (trackLock)
-		{
-			track.setStereoVolume(left, right);
-		}
-	}
-
-	public SoundTouchPlayable(OnProgressChangedListener playbackListener,
+	
+	public SoundTouchPlayableBase(OnProgressChangedListener playbackListener,
 			String fileName, int id, float tempo, float pitchSemi)
 			throws IOException
 	{
@@ -196,7 +166,7 @@ public class SoundTouchPlayable implements Runnable
 		this.playbackListener = playbackListener;
 	}
 
-	public SoundTouchPlayable(String fileName, int id, float tempo,
+	public SoundTouchPlayableBase(String fileName, int id, float tempo,
 			float pitchSemi) throws IOException, SoundTouchAndroidException
 	{
 		if (Build.VERSION.SDK_INT >= 16)
@@ -213,7 +183,7 @@ public class SoundTouchPlayable implements Runnable
 		handler = new Handler();
 
 		pauseLock = new Object();
-		trackLock = new Object();
+		sinkLock = new Object();
 		decodeLock = new Object();
 
 		paused = true;
@@ -258,12 +228,10 @@ public class SoundTouchPlayable implements Runnable
 			finished = true;
 			soundTouch.clearBuffer();
 
-			synchronized (trackLock)
+			synchronized (sinkLock)
 			{
-				track.pause();
-				track.flush();
-				track.release();
-				track = null;
+				sink.close();
+				sink = null;
 			}
 			synchronized (decodeLock)
 			{
@@ -279,42 +247,17 @@ public class SoundTouchPlayable implements Runnable
 		loopEnd = NOT_SET;
 	}
 
-	public void seekTo(double percentage, boolean shouldFlush) // 0.0 - 1.0
-	{
-		long timeInUs = (long) (decoder.getDuration() * percentage);
-		seekTo(timeInUs, shouldFlush);
-	}
-
-	public void seekTo(long timeInUs, boolean shouldFlush)
-	{
-		if (timeInUs < 0 || timeInUs > decoder.getDuration())
-			throw new SoundTouchAndroidException("" + timeInUs
-					+ " Not a valid seek time.");
-
-		if (shouldFlush)
-		{
-			this.pause();
-			synchronized (trackLock)
-			{
-				track.flush();
-				bytesWritten = 0;
-			}
-			soundTouch.clearBuffer();
-		}
-		synchronized (decodeLock)
-		{
-			decoder.seek(timeInUs);
-		}
-	}
-
-	public void play()
+	public abstract void onStart();
+	public abstract void onPause();
+	public abstract void onStop();
+	
+	public abstract void seekTo(long timeInUs);
+	
+	public void start()
 	{
 		synchronized (pauseLock)
 		{
-			synchronized (trackLock)
-			{
-				track.play();
-			}
+			onStart();
 			paused = false;
 			finished = false;
 			pauseLock.notifyAll();
@@ -325,10 +268,7 @@ public class SoundTouchPlayable implements Runnable
 	{
 		synchronized (pauseLock)
 		{
-			synchronized (trackLock)
-			{
-				track.pause();
-			}
+			onPause();
 			paused = true;
 		}
 	}
@@ -339,6 +279,7 @@ public class SoundTouchPlayable implements Runnable
 		{
 			synchronized (pauseLock)
 			{
+				onStop();
 				paused = false;
 				pauseLock.notifyAll();
 			}
@@ -375,7 +316,7 @@ public class SoundTouchPlayable implements Runnable
 
 			if (isLooping() && decoder.getPlayedDuration() >= loopEnd)
 			{
-				seekTo(loopStart, false);
+				seekTo(loopStart);
 			}
 
 			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
@@ -441,9 +382,9 @@ public class SoundTouchPlayable implements Runnable
 				// Log.d("bytes", String.valueOf(input.length));
 				bytesReceived = soundTouch.getBytes(input);
 			}
-			synchronized (trackLock)
+			synchronized (sinkLock)
 			{
-				bytesWritten += track.write(input, 0, bytesReceived);
+				bytesWritten += sink.write(input, 0, bytesReceived);
 			}
 
 		}
@@ -469,7 +410,7 @@ public class SoundTouchPlayable implements Runnable
 		soundTouch = new SoundTouch(id, channels, samplingRate,
 				DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
 
-		track = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate,
+		sink = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate,
 				channelFormat, AudioFormat.ENCODING_PCM_16BIT,
 				BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 	}
