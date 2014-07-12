@@ -1,9 +1,12 @@
 package com.smp.soundtouchandroid;
 
+import static com.smp.soundtouchandroid.Constants.BUFFER_SIZE_TRACK;
 import static com.smp.soundtouchandroid.Constants.DEFAULT_BYTES_PER_SAMPLE;
 
 import java.io.IOException;
 
+import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioTrack;
 
 public class SoundTouchPlayer extends SoundTouchPlayableBase
@@ -14,7 +17,6 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 			float pitchSemi) throws IOException, SoundTouchAndroidException
 	{
 		super(fileName, id, tempo, pitchSemi);
-		// TODO Auto-generated constructor stub
 	}
 	public int getSessionId()
 	{
@@ -94,6 +96,29 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 	public void seekTo(long timeInUs)
 	{
 		seekTo(timeInUs, false);
+	}
+	private void initAudioTrack(int id, float tempo, float pitchSemi)
+			throws IOException
+	{
+		int channelFormat;
+
+		if (channels == 1) // mono
+			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
+		else if (channels == 2) // stereo
+			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
+		else
+			throw new SoundTouchAndroidException(
+					"Valid channel count is 1 or 2");
+
+		track = new AudioSinkAudioTrack(AudioManager.STREAM_MUSIC, samplingRate,
+				channelFormat, AudioFormat.ENCODING_PCM_16BIT,
+				BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
+	}
+	@Override
+	protected AudioSink initAudioSink() throws IOException
+	{
+		initAudioTrack(getSoundTouchTrackId(), getTempo(), getPitchSemi());
+		return track;
 	}
 	
 }

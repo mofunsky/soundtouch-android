@@ -23,18 +23,33 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	protected volatile AudioDecoder decoder;
 	
 	private Handler handler;
-	private OnProgressChangedListener playbackListener;
 	
 	private String fileName;
-	private int id;
 	private boolean bypassSoundTouch;
 
 	private volatile long loopStart = NOT_SET;
 	private volatile long loopEnd = NOT_SET;
-	private volatile AudioSink sink;
+	private volatile AudioSink audioSink;
+	private volatile OnProgressChangedListener progressListener;
 	
 	private volatile boolean paused, finished;
 
+	protected int channels;
+	protected int samplingRate;
+	
+	protected void init(String fileName, int id, float tempo, float pitchSemi) 
+			throws IOException
+	{
+		
+	}
+	
+	protected abstract AudioSink initAudioSink() throws IOException;
+
+	private void initSoundTouch(int id, float tempo, float pitchSemi)
+	{
+		soundTouch = new SoundTouch(id, channels, samplingRate,
+				DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
+	}
 	public long getBytesWritten()
 	{
 		return bytesWritten;
@@ -78,15 +93,16 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		return soundTouch.getSamplingRate();
 	}
 
-	
-
 	public long getSoundTouchBufferSize()
 	{
 		return soundTouch.getOutputBufferSize();
 	}
-
 	
-
+	protected int getSoundTouchTrackId()
+	{
+		return soundTouch.getTrackId();
+	}
+	
 	public float getTempo()
 	{
 		return soundTouch.getTempo();
@@ -102,8 +118,6 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		return loopStart;
 	}
 
-	
-	
 	public boolean isFinished()
 	{
 		return finished;
@@ -141,7 +155,10 @@ public abstract class SoundTouchPlayableBase implements Runnable
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopStart = loopStart;
 	}
-
+	public void setOnProgressChangedListener(OnProgressChangedListener progressListener)
+	{
+		this.progressListener = progressListener;
+	}
 	public void setPitchSemi(float pitchSemi)
 	{
 		soundTouch.setPitchSemi(pitchSemi);
@@ -157,28 +174,13 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		soundTouch.setTempoChange(tempoChange);
 	}
 
-	
-	public SoundTouchPlayableBase(OnProgressChangedListener playbackListener,
-			String fileName, int id, float tempo, float pitchSemi)
-			throws IOException
-	{
-		this(fileName, id, tempo, pitchSemi);
-		this.playbackListener = playbackListener;
-	}
-
 	public SoundTouchPlayableBase(String fileName, int id, float tempo,
 			float pitchSemi) throws IOException, SoundTouchAndroidException
 	{
-		if (Build.VERSION.SDK_INT >= 16)
-		{
-			decoder = new MediaCodecAudioDecoder(fileName);
-		} else
-		{
-			decoder = new JLayerAudioDecoder(fileName);
-		}
-
+		initDecoder(fileName);
+		initSoundTouch(id, tempo, pitchSemi);
+		audioSink = initAudioSink();
 		this.fileName = fileName;
-		this.id = id;
 
 		handler = new Handler();
 
@@ -188,10 +190,21 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 		paused = true;
 		finished = false;
-
-		setupAudio(id, tempo, pitchSemi);
 	}
+	private void initDecoder(String fileName) throws IOException
+	{
+		if (Build.VERSION.SDK_INT >= 16)
+		{
+			decoder = new MediaCodecAudioDecoder(fileName);
+		}
+		else
+		{
+			decoder = new JLayerAudioDecoder(fileName);
+		}
 
+		channels = decoder.getChannels();
+		samplingRate = decoder.getSamplingRate();
+	}
 	@Override
 	public void run()
 	{
@@ -203,14 +216,14 @@ public abstract class SoundTouchPlayableBase implements Runnable
 			{
 				playFile();
 				paused = true;
-				if (playbackListener != null && !finished)
+				if (progressListener != null && !finished)
 				{
 					handler.post(new Runnable()
 					{
 						@Override
 						public void run()
 						{
-							playbackListener.onTrackEnd(id);
+							progressListener.onTrackEnd(soundTouch.getTrackId());
 						}
 					});
 				}
@@ -230,8 +243,8 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 			synchronized (sinkLock)
 			{
-				sink.close();
-				sink = null;
+				audioSink.close();
+				audioSink = null;
 			}
 			synchronized (decodeLock)
 			{
@@ -247,11 +260,11 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		loopEnd = NOT_SET;
 	}
 
-	public abstract void onStart();
-	public abstract void onPause();
-	public abstract void onStop();
+	protected abstract void onStart();
+	protected abstract void onPause();
+	protected abstract void onStop();
 	
-	public abstract void seekTo(long timeInUs);
+	protected abstract void seekTo(long timeInUs);
 	
 	public void start()
 	{
@@ -345,7 +358,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 	private void sendProgressUpdate()
 	{
-		if (playbackListener != null)
+		if (progressListener != null)
 		{
 			handler.post(new Runnable()
 			{
@@ -358,7 +371,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 						long pd = decoder.getPlayedDuration();
 						long d = decoder.getDuration();
 						double cp = pd == 0 ? 0 : (double) pd / d;
-						playbackListener.onProgressChanged(id, cp, pd);
+						progressListener.onProgressChanged(soundTouch.getTrackId(), cp, pd);
 					}
 				}
 			});
@@ -384,34 +397,10 @@ public abstract class SoundTouchPlayableBase implements Runnable
 			}
 			synchronized (sinkLock)
 			{
-				bytesWritten += sink.write(input, 0, bytesReceived);
+				bytesWritten += audioSink.write(input, 0, bytesReceived);
 			}
 
 		}
 		return bytesReceived;
-	}
-
-	private void setupAudio(int id, float tempo, float pitchSemi)
-			throws IOException
-	{
-		int channels = decoder.getChannels();
-		int samplingRate = decoder.getSamplingRate();
-
-		int channelFormat = -1;
-
-		if (channels == 1) // mono
-			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
-		else if (channels == 2) // stereo
-			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
-		else
-			throw new SoundTouchAndroidException(
-					"Valid channel count is 1 or 2");
-
-		soundTouch = new SoundTouch(id, channels, samplingRate,
-				DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
-
-		sink = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate,
-				channelFormat, AudioFormat.ENCODING_PCM_16BIT,
-				BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 	}
 }

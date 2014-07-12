@@ -40,6 +40,11 @@ public class SoundTouch
 	{
 		return tempo;
 	}
+	
+	public int getTrackId()
+	{
+		return track;
+	}
 
 	public void setBytesPerSample(int bytesPerSample)
 	{
