@@ -16,14 +16,14 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	protected Object pauseLock;
 	protected Object sinkLock;
 	protected Object decodeLock;
-	
+
 	protected volatile long bytesWritten;
-	
+
 	protected SoundTouch soundTouch;
 	protected volatile AudioDecoder decoder;
-	
+
 	private Handler handler;
-	
+
 	private String fileName;
 	private boolean bypassSoundTouch;
 
@@ -31,12 +31,12 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	private volatile long loopEnd = NOT_SET;
 	private volatile AudioSink audioSink;
 	private volatile OnProgressChangedListener progressListener;
-	
+
 	private volatile boolean paused, finished;
 
 	protected int channels;
 	protected int samplingRate;
-	
+
 	protected abstract AudioSink initAudioSink() throws IOException;
 
 	private void initSoundTouch(int id, float tempo, float pitchSemi)
@@ -44,6 +44,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		soundTouch = new SoundTouch(id, channels, samplingRate,
 				DEFAULT_BYTES_PER_SAMPLE, tempo, pitchSemi);
 	}
+
 	public long getBytesWritten()
 	{
 		return bytesWritten;
@@ -91,12 +92,12 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	{
 		return soundTouch.getOutputBufferSize();
 	}
-	
+
 	protected int getSoundTouchTrackId()
 	{
 		return soundTouch.getTrackId();
 	}
-	
+
 	public float getTempo()
 	{
 		return soundTouch.getTempo();
@@ -149,10 +150,13 @@ public abstract class SoundTouchPlayableBase implements Runnable
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopStart = loopStart;
 	}
-	public void setOnProgressChangedListener(OnProgressChangedListener progressListener)
+
+	public void setOnProgressChangedListener(
+			OnProgressChangedListener progressListener)
 	{
 		this.progressListener = progressListener;
 	}
+
 	public void setPitchSemi(float pitchSemi)
 	{
 		soundTouch.setPitchSemi(pitchSemi);
@@ -185,13 +189,13 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		paused = true;
 		finished = false;
 	}
+
 	private void initDecoder(String fileName) throws IOException
 	{
 		if (Build.VERSION.SDK_INT >= 16)
 		{
 			decoder = new MediaCodecAudioDecoder(fileName);
-		}
-		else
+		} else
 		{
 			decoder = new JLayerAudioDecoder(fileName);
 		}
@@ -199,6 +203,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		channels = decoder.getChannels();
 		samplingRate = decoder.getSamplingRate();
 	}
+
 	@Override
 	public void run()
 	{
@@ -255,11 +260,15 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	}
 
 	protected abstract void onStart();
+
 	protected abstract void onPause();
+
 	protected abstract void onStop();
-	
-	protected void seekTo(long timeInUs) {};
-	
+
+	protected void seekTo(long timeInUs)
+	{
+	};
+
 	public void start()
 	{
 		synchronized (pauseLock)
@@ -365,7 +374,8 @@ public abstract class SoundTouchPlayableBase implements Runnable
 						long pd = decoder.getPlayedDuration();
 						long d = decoder.getDuration();
 						double cp = pd == 0 ? 0 : (double) pd / d;
-						progressListener.onProgressChanged(soundTouch.getTrackId(), cp, pd);
+						progressListener.onProgressChanged(
+								soundTouch.getTrackId(), cp, pd);
 					}
 				}
 			});
@@ -388,11 +398,13 @@ public abstract class SoundTouchPlayableBase implements Runnable
 				// Log.d("bytes", String.valueOf(input.length));
 				bytesReceived = soundTouch.getBytes(input);
 			}
-			synchronized (sinkLock)
+			if (bytesReceived > 0)
 			{
-				bytesWritten += audioSink.write(input, 0, bytesReceived);
+				synchronized (sinkLock)
+				{
+					bytesWritten += audioSink.write(input, 0, bytesReceived);
+				}
 			}
-
 		}
 		return bytesReceived;
 	}
