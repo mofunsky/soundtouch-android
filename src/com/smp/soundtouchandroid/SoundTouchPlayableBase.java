@@ -37,12 +37,6 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	protected int channels;
 	protected int samplingRate;
 	
-	protected void init(String fileName, int id, float tempo, float pitchSemi) 
-			throws IOException
-	{
-		
-	}
-	
 	protected abstract AudioSink initAudioSink() throws IOException;
 
 	private void initSoundTouch(int id, float tempo, float pitchSemi)
@@ -174,8 +168,8 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		soundTouch.setTempoChange(tempoChange);
 	}
 
-	public SoundTouchPlayableBase(String fileName, int id, float tempo,
-			float pitchSemi) throws IOException, SoundTouchAndroidException
+	public SoundTouchPlayableBase(int id, String fileName, float tempo,
+			float pitchSemi) throws IOException
 	{
 		initDecoder(fileName);
 		initSoundTouch(id, tempo, pitchSemi);
@@ -214,7 +208,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		{
 			while (!finished)
 			{
-				playFile();
+				processFile();
 				paused = true;
 				if (progressListener != null && !finished)
 				{
@@ -264,7 +258,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	protected abstract void onPause();
 	protected abstract void onStop();
 	
-	protected abstract void seekTo(long timeInUs);
+	protected void seekTo(long timeInUs) {};
 	
 	public void start()
 	{
@@ -316,7 +310,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		}
 	}
 
-	private void playFile() throws SoundTouchAndroidException
+	private void processFile()
 	{
 		int bytesReceived = 0;
 		byte[] input = null;
@@ -379,7 +373,6 @@ public abstract class SoundTouchPlayableBase implements Runnable
 	}
 
 	private int processChunk(final byte[] input, boolean putBytes)
-			throws SoundTouchAndroidException
 	{
 		int bytesReceived = 0;
 

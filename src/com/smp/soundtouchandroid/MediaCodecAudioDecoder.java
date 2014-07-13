@@ -34,7 +34,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		}
 	}
 
-	private static final long TIMEOUT_US = 200000;
+	private static final long TIMEOUT_US = 10000;
 
 	private long durationUs; // track duration in us
 	private volatile long lastPresentationTime;

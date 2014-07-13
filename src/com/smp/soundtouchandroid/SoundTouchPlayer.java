@@ -13,10 +13,10 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 {
 	private AudioSinkAudioTrack track;
 	
-	public SoundTouchPlayer(String fileName, int id, float tempo,
-			float pitchSemi) throws IOException, SoundTouchAndroidException
+	public SoundTouchPlayer(int id, String fileName, float tempo,
+			float pitchSemi) throws IOException
 	{
-		super(fileName, id, tempo, pitchSemi);
+		super(id, fileName, tempo, pitchSemi);
 	}
 	public int getSessionId()
 	{
@@ -30,7 +30,6 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 			return bytesWritten - playbackHead * DEFAULT_BYTES_PER_SAMPLE
 					* getChannels();
 		}
-
 	}
 	public void setVolume(float left, float right)
 	{
@@ -88,10 +87,7 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 	}
 	@Override
 	public void onStop()
-	{
-		// TODO Auto-generated method stub
-		
-	}
+	{}
 	@Override
 	public void seekTo(long timeInUs)
 	{
@@ -102,9 +98,9 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 	{
 		int channelFormat;
 
-		if (channels == 1) // mono
+		if (channels == 1) 
 			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
-		else if (channels == 2) // stereo
+		else if (channels == 2)
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
 		else
 			throw new SoundTouchAndroidException(

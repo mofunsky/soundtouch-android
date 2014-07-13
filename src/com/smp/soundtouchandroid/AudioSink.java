@@ -1,7 +1,9 @@
 package com.smp.soundtouchandroid;
 
+import java.io.IOException;
+
 public interface AudioSink
 {
-	int write(byte[] input, int i, int bytesReceived);
+	int write(byte[] input, int offSetInBytes, int sizeInBytes);
 	void close();
 }
