@@ -5,10 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Environment;
 import android.util.Log;
@@ -41,9 +44,44 @@ public class AudioSinkAudioEncoder implements AudioSink
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
+	private List<String> getEncoderNamesForType(String mime)
+	{
+		LinkedList<String> names = new LinkedList<String>();
+		int n = MediaCodecList.getCodecCount();
+		for (int i = 0; i < n; ++i)
+		{
+			MediaCodecInfo info = MediaCodecList.getCodecInfoAt(i);
+			if (!info.isEncoder())
+			{
+				continue;
+			}
+			if (!info.getName().startsWith("OMX."))
+			{
+				// Unfortunately for legacy reasons, "AACEncoder", a
+				// non OMX component had to be in this list for the video
+				// editor code to work... but it cannot actually be instantiated
+				// using MediaCodec.
+				Log.d(TAG, "skipping '" + info.getName() + "'.");
+				continue;
+			}
+			String[] supportedTypes = info.getSupportedTypes();
+			for (int j = 0; j < supportedTypes.length; ++j)
+			{
+				if (supportedTypes[j].equalsIgnoreCase(mime))
+				{
+					names.push(info.getName());
+					break;
+				}
+			}
+		}
+		return names;
+	}
+
 	public AudioSinkAudioEncoder(String fileName) throws FileNotFoundException
 	{
-		String componentName = "OMX.google.aac.encoder";
+		String mime = "audio/mp4a-latm";
+		List<String> componentNames = getEncoderNamesForType(mime);
+		String componentName = componentNames.get(0);
 		codec = MediaCodec.createByCodecName(componentName);
 		format = new MediaFormat();
 		format.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm");
@@ -81,33 +119,29 @@ public class AudioSinkAudioEncoder implements AudioSink
 			{
 				codec.queueInputBuffer(index, 0 /* offset */, 0 /* size */,
 						0 /* timeUs */, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-				if (true)
-				{
-					Log.d(TAG, "queued input EOS.");
-				}
+
+				Log.d(TAG, "queued input EOS.");
+
 				while (!doneDequeing)
 					writeOutput();
-			} 
-			else if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
+			} else if (index != MediaCodec.INFO_TRY_AGAIN_LATER)
 			{
 				ByteBuffer buffer = codecInputBuffers[index];
 				int chunkSize = Math.min(buffer.capacity(),
 						overflowBuffer.remaining());
-				//byte[] chunk = new byte[chunkSize];
-				overflowBuffer.put(chunk, 0, chunkSize);
+				// byte[] chunk = new byte[chunkSize];
+				overflowBuffer.get(chunk, 0, chunkSize);
 				buffer.clear();
 				buffer.put(chunk);
 				codec.queueInputBuffer(index, offsetInBytes, chunkSize, 0, 0);
 				numBytesSubmitted += chunkSize;
-				if (true)
-				{
-					//Log.d(TAG, "queued " + chunkSize + " bytes of input data.");
-				}
+
+				// Log.d(TAG, "queued " + chunkSize + " bytes of input data.");
+
 			}
 			writeOutput();
 		}
 
-		
 		return total;
 	}
 
@@ -121,7 +155,9 @@ public class AudioSinkAudioEncoder implements AudioSink
 		{
 		} else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
-		} else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
+			format = codec.getOutputFormat();
+		} 
+		else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
 		{
 			codecOutputBuffers = codec.getOutputBuffers();
 		} else
@@ -154,16 +190,12 @@ public class AudioSinkAudioEncoder implements AudioSink
 			codec.releaseOutputBuffer(index, false /* render */);
 			if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 			{
-				if (true)
-				{
-					Log.d(TAG, "dequeued output EOS.");
-				}
+				Log.d(TAG, "dequeued output EOS.");
 				doneDequeing = true;
 			}
-			if (true)
-			{
-				//Log.d(TAG, "dequeued " + info.size + " bytes of output data.");
-			}
+
+			// Log.d(TAG, "dequeued " + info.size +
+			// " bytes of output data.");
 		}
 	}
 
