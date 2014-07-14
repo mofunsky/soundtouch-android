@@ -109,7 +109,7 @@ public class AudioSinkAudioEncoder implements AudioSink
 	{
 		int total = 0;
 		overflowBuffer.clear();
-		overflowBuffer.put(input);
+		overflowBuffer.put(input, offsetInBytes, sizeInBytes);
 		overflowBuffer.flip();
 		while (overflowBuffer.hasRemaining())
 		{
@@ -203,7 +203,7 @@ public class AudioSinkAudioEncoder implements AudioSink
 	{
 		int profile = 2; // AAC LC
 							// 39=MediaCodecInfo.CodecProfileLevel.AACObjectELD;
-		int freqIdx = 4; // 44.1KHz
+		int freqIdx = 4; // 44100KHz
 		int chanCfg = 2; // CPE
 
 		// fill in ADTS data
