@@ -235,6 +235,10 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		{
 			// need to notify...something?
 			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally
 		{
 			finished = true;
@@ -319,7 +323,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		}
 	}
 
-	private void processFile()
+	private void processFile() throws IOException
 	{
 		int bytesReceived = 0;
 		byte[] input = null;
@@ -382,7 +386,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		}
 	}
 
-	private int processChunk(final byte[] input, boolean putBytes)
+	private int processChunk(final byte[] input, boolean putBytes) throws IOException
 	{
 		int bytesReceived = 0;
 

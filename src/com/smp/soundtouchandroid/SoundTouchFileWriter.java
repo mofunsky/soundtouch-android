@@ -35,17 +35,7 @@ public class SoundTouchFileWriter extends SoundTouchPlayableBase
 	@Override
 	protected void onStop()
 	{
-		// TODO Auto-generated method stub
+		encoder.finishWriting();
 		
 	}
-
-	@Override
-	protected void seekTo(long timeInUs)
-	{
-		// TODO Auto-generated method stub
-		
-	}
-	
-	
-
 }
