@@ -29,12 +29,13 @@ public class AudioSinkAudioEncoder implements AudioSink
 	private static final String TAG = "ENCODE";
 
 	// private long kNumInputBytes;
-	private static final long kTimeoutUs = 10000;
+	private static final long kTimeoutUs = 0;
 
 	private BufferedOutputStream outputStream;
 	private boolean doneDequeing;
 
 	private ByteBuffer overflowBuffer;
+	private boolean firstSkipped;
 	private byte[] chunk;
 	static String testPath;
 	static
@@ -44,45 +45,9 @@ public class AudioSinkAudioEncoder implements AudioSink
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
-	private List<String> getEncoderNamesForType(String mime)
-	{
-		LinkedList<String> names = new LinkedList<String>();
-		int n = MediaCodecList.getCodecCount();
-		for (int i = 0; i < n; ++i)
-		{
-			MediaCodecInfo info = MediaCodecList.getCodecInfoAt(i);
-			if (!info.isEncoder())
-			{
-				continue;
-			}
-			if (!info.getName().startsWith("OMX."))
-			{
-				// Unfortunately for legacy reasons, "AACEncoder", a
-				// non OMX component had to be in this list for the video
-				// editor code to work... but it cannot actually be instantiated
-				// using MediaCodec.
-				Log.d(TAG, "skipping '" + info.getName() + "'.");
-				continue;
-			}
-			String[] supportedTypes = info.getSupportedTypes();
-			for (int j = 0; j < supportedTypes.length; ++j)
-			{
-				if (supportedTypes[j].equalsIgnoreCase(mime))
-				{
-					names.push(info.getName());
-					break;
-				}
-			}
-		}
-		return names;
-	}
-
 	public AudioSinkAudioEncoder(String fileName) throws FileNotFoundException
 	{
-		String mime = "audio/mp4a-latm";
-		List<String> componentNames = getEncoderNamesForType(mime);
-		String componentName = componentNames.get(0);
-		codec = MediaCodec.createByCodecName(componentName);
+		codec = MediaCodec.createByCodecName("OMX.google.aac.encoder");
 		format = new MediaFormat();
 		format.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm");
 		format.setInteger(MediaFormat.KEY_AAC_PROFILE,
@@ -100,14 +65,15 @@ public class AudioSinkAudioEncoder implements AudioSink
 
 		outputStream = new BufferedOutputStream(new FileOutputStream(testPath));
 
-		overflowBuffer = ByteBuffer.allocate(8096);
+		overflowBuffer = ByteBuffer.allocateDirect(8096);
 		chunk = new byte[4096];
 	}
 
 	@Override
-	public int write(byte[] input, int offsetInBytes, int sizeInBytes) throws IOException
+	public int write(byte[] input, int offsetInBytes, int sizeInBytes)
+			throws IOException
 	{
-		
+
 		int total = 0;
 		overflowBuffer.clear();
 		overflowBuffer.put(input, offsetInBytes, sizeInBytes);
@@ -135,6 +101,7 @@ public class AudioSinkAudioEncoder implements AudioSink
 		}
 		return total;
 	}
+
 	public void finishWriting() throws IOException
 	{
 		int index;
@@ -142,9 +109,9 @@ public class AudioSinkAudioEncoder implements AudioSink
 		{
 			index = codec.dequeueInputBuffer(kTimeoutUs /* timeoutUs */);
 			if (index >= 0)
-				codec.queueInputBuffer(index, 0 /* offset */, 0 /* size */, 0 /* timeUs */, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-		}
-		while (index < 0);
+				codec.queueInputBuffer(index, 0 /* offset */, 0 /* size */,
+						0 /* timeUs */, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+		} while (index < 0);
 		Log.d(TAG, "queued input EOS.");
 
 		while (!doneDequeing)
@@ -160,43 +127,36 @@ public class AudioSinkAudioEncoder implements AudioSink
 		if (index == MediaCodec.INFO_TRY_AGAIN_LATER)
 		{
 			;
-		} 
-		else if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
+		} else if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
 			Log.d(TAG, "dequeued output EOS.");
 			doneDequeing = true;
+			
 			ByteBuffer outBuf = codecOutputBuffers[index];
 			outBuf.position(info.offset);
 			outBuf.limit(info.offset + info.size);
-			try
-			{
+			
 				byte[] data = new byte[info.size]; // space for ADTS header
-														// included
-				
+													// included
+
 				outBuf.get(data, 0, info.size);
 				outBuf.position(info.offset);
-				outputStream.write(data, 0, info.size);
+				//outputStream.write(data, 0, info.size);
 				numBytesDequeued += info.size;
 
 				outBuf.clear();
-				codec.releaseOutputBuffer(index, false /* render */);// open
-															// FileOutputStream
-															// beforehand
-			} catch (IOException e)
-			{
-				Log.e(TAG, "failed writing bitstream data to file");
-				e.printStackTrace();
-			}
-		}
+				codec.releaseOutputBuffer(index, false /* render */);}// open
+				// FileOutputStream
+				// beforehand
+			
+			
 		else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
 			format = codec.getOutputFormat();
-		} 
-		else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
+		} else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
 		{
 			codecOutputBuffers = codec.getOutputBuffers();
-		} 
-		else if (index >= 0)
+		} else if (index >= 0)
 		{
 			int outBitsSize = info.size;
 			int outPacketSize = outBitsSize + 7; // 7 is ADTS size
@@ -204,32 +164,31 @@ public class AudioSinkAudioEncoder implements AudioSink
 
 			outBuf.position(info.offset);
 			outBuf.limit(info.offset + outBitsSize);
-			
-			
-				byte[] data = new byte[outPacketSize]; // space for ADTS header
-														// included
-				addADTStoPacket(data, outPacketSize);
-				outBuf.get(data, 7, outBitsSize);
-				outBuf.position(info.offset);
-				outputStream.write(data, 0, outPacketSize); // open
-															// FileOutputStream
-															// beforehand
-		
 
+			byte[] data = new byte[outPacketSize]; // space for ADTS header
+													// included
+			addADTStoPacket(data, outPacketSize);
+			outBuf.get(data, 7, outBitsSize);
+			outBuf.position(info.offset);
+			
+			if (firstSkipped)
+				outputStream.write(data, 0, outPacketSize); // open
+														// FileOutputStream
+			firstSkipped = true;											// beforehand
 			numBytesDequeued += info.size;
 
 			outBuf.clear();
 			codec.releaseOutputBuffer(index, false /* render */);
 			
-
 			// Log.d(TAG, "dequeued " + info.size +
 			// " bytes of output data.");
 		}
+		
 	}
 
 	private void addADTStoPacket(byte[] packet, int packetLen)
 	{
-		int profile = 2; // AAC 
+		int profile = 2; // AAC
 							// 39=MediaCodecInfo.CodecProfileLevel.AACObjectELD;
 		int freqIdx = 4; // 44100KHz
 		int chanCfg = 2; // CPE
@@ -242,11 +201,6 @@ public class AudioSinkAudioEncoder implements AudioSink
 		packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
 		packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
 		packet[6] = (byte) 0xFC;
-	}
-
-	public void setSignalEndOfInput(boolean value)
-	{
-		signalEndOfInput = value;
 	}
 
 	@Override

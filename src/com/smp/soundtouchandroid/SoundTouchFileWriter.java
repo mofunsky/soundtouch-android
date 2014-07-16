@@ -35,7 +35,14 @@ public class SoundTouchFileWriter extends SoundTouchPlayableBase
 	@Override
 	protected void onStop()
 	{
-		encoder.finishWriting();
+		try
+		{
+			encoder.finishWriting();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 }
