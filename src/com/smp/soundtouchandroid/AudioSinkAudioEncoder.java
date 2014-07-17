@@ -87,7 +87,8 @@ public class AudioSinkAudioEncoder implements AudioSink
 				ByteBuffer buffer = codecInputBuffers[index];
 				int chunkSize = Math.min(buffer.capacity(),
 						overflowBuffer.remaining());
-				// byte[] chunk = new byte[chunkSize];
+				if (chunkSize > chunk.length)
+					chunk = new byte[chunkSize];
 				overflowBuffer.get(chunk, 0, chunkSize);
 				buffer.clear();
 				buffer.put(chunk);
@@ -131,26 +132,7 @@ public class AudioSinkAudioEncoder implements AudioSink
 		{
 			Log.d(TAG, "dequeued output EOS.");
 			doneDequeing = true;
-			
-			ByteBuffer outBuf = codecOutputBuffers[index];
-			outBuf.position(info.offset);
-			outBuf.limit(info.offset + info.size);
-			
-				byte[] data = new byte[info.size]; // space for ADTS header
-													// included
-
-				outBuf.get(data, 0, info.size);
-				outBuf.position(info.offset);
-				//outputStream.write(data, 0, info.size);
-				numBytesDequeued += info.size;
-
-				outBuf.clear();
-				codec.releaseOutputBuffer(index, false /* render */);}// open
-				// FileOutputStream
-				// beforehand
-			
-			
-		else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
+		} else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
 			format = codec.getOutputFormat();
 		} else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
@@ -170,20 +152,20 @@ public class AudioSinkAudioEncoder implements AudioSink
 			addADTStoPacket(data, outPacketSize);
 			outBuf.get(data, 7, outBitsSize);
 			outBuf.position(info.offset);
-			
+
 			if (firstSkipped)
 				outputStream.write(data, 0, outPacketSize); // open
-														// FileOutputStream
-			firstSkipped = true;											// beforehand
+			// FileOutputStream
+			firstSkipped = true; // beforehand
 			numBytesDequeued += info.size;
 
 			outBuf.clear();
 			codec.releaseOutputBuffer(index, false /* render */);
-			
+
 			// Log.d(TAG, "dequeued " + info.size +
 			// " bytes of output data.");
 		}
-		
+
 	}
 
 	private void addADTStoPacket(byte[] packet, int packetLen)

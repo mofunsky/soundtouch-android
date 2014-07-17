@@ -2,8 +2,11 @@ package com.smp.soundtouchandroid;
 
 import java.io.IOException;
 
+import android.util.Log;
+
 public class SoundTouchFileWriter extends SoundTouchPlayableBase
 {	
+	private long start, end;
 	private AudioSinkAudioEncoder encoder;
 	public SoundTouchFileWriter(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
@@ -21,7 +24,7 @@ public class SoundTouchFileWriter extends SoundTouchPlayableBase
 	@Override
 	protected void onStart()
 	{
-		// TODO Auto-generated method stub
+		start = System.nanoTime();
 		
 	}
 
@@ -38,6 +41,10 @@ public class SoundTouchFileWriter extends SoundTouchPlayableBase
 		try
 		{
 			encoder.finishWriting();
+			end = System.nanoTime();
+			long elapsedTime = end - start;
+			double seconds = (double)elapsedTime / 1000000000.0;
+			Log.i("ENCODE", "SECONDS: " + String.valueOf(seconds));
 		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block

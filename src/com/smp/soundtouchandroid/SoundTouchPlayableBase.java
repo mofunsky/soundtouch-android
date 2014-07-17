@@ -3,6 +3,11 @@ package com.smp.soundtouchandroid;
 import static com.smp.soundtouchandroid.Constants.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -11,6 +16,7 @@ import android.os.Handler;
 
 public abstract class SoundTouchPlayableBase implements Runnable
 {
+	ExecutorService exec;
 	private static final long NOT_SET = Long.MIN_VALUE;
 
 	protected Object pauseLock;
@@ -188,6 +194,8 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 		paused = true;
 		finished = false;
+		
+		exec = Executors.newSingleThreadExecutor();
 	}
 
 	private void initDecoder(String fileName) throws IOException
@@ -217,6 +225,15 @@ public abstract class SoundTouchPlayableBase implements Runnable
 				paused = true;
 				if (progressListener != null && !finished)
 				{
+					exec.shutdown();
+					try
+					{
+						exec.awaitTermination(20, TimeUnit.SECONDS);
+					} catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					handler.post(new Runnable()
 					{
 						@Override
@@ -354,13 +371,15 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		} while (!decoder.sawOutputEOS());
 
 		soundTouch.finish();
-
-		do
+		if (!bypassSoundTouch)
 		{
-			if (finished)
-				break;
-			bytesReceived = processChunk(input, false);
-		} while (bytesReceived > 0);
+			do
+			{
+				if (finished)
+					break;
+				bytesReceived = processChunk(input, false);
+			} while (bytesReceived > 0);
+		}
 	}
 
 	private void sendProgressUpdate()
@@ -386,7 +405,8 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		}
 	}
 
-	private int processChunk(final byte[] input, boolean putBytes) throws IOException
+	private int processChunk(final byte[] input, boolean putBytes)
+			throws IOException
 	{
 		int bytesReceived = 0;
 
@@ -406,7 +426,29 @@ public abstract class SoundTouchPlayableBase implements Runnable
 			{
 				synchronized (sinkLock)
 				{
-					bytesWritten += audioSink.write(input, 0, bytesReceived);
+					bytesWritten += bytesReceived;
+					final int sub = bytesReceived;
+					final byte[] tmp = Arrays.copyOf(input, input.length);
+					
+							
+							exec.submit(new Runnable() {
+
+								@Override
+								public void run()
+								{
+									try
+									{
+										audioSink.write(tmp, 0, sub);
+									} catch (IOException e)
+									{
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									// TODO Auto-generated method stub
+									
+								}
+								
+							});
 				}
 			}
 		}
