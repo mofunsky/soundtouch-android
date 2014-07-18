@@ -9,9 +9,9 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
-public class SoundTouchPlayer extends SoundTouchPlayableBase
+public class SoundTouchPlayer extends SoundTouchRunnable
 {
-	private AudioSinkAudioTrack track;
+	private AudioTrackAudioSink track;
 	
 	public SoundTouchPlayer(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
@@ -106,7 +106,7 @@ public class SoundTouchPlayer extends SoundTouchPlayableBase
 			throw new SoundTouchAndroidException(
 					"Valid channel count is 1 or 2");
 
-		track = new AudioSinkAudioTrack(AudioManager.STREAM_MUSIC, samplingRate,
+		track = new AudioTrackAudioSink(AudioManager.STREAM_MUSIC, samplingRate,
 				channelFormat, AudioFormat.ENCODING_PCM_16BIT,
 				BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 	}

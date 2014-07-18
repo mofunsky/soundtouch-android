@@ -3,20 +3,14 @@ package com.smp.soundtouchandroid;
 import static com.smp.soundtouchandroid.Constants.*;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
 
-public abstract class SoundTouchPlayableBase implements Runnable
+public abstract class SoundTouchRunnable implements Runnable
 {
-	ExecutorService exec;
 	private static final long NOT_SET = Long.MIN_VALUE;
 
 	protected Object pauseLock;
@@ -178,7 +172,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 		soundTouch.setTempoChange(tempoChange);
 	}
 
-	public SoundTouchPlayableBase(int id, String fileName, float tempo,
+	public SoundTouchRunnable(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
 	{
 		initDecoder(fileName);
@@ -194,8 +188,6 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 		paused = true;
 		finished = false;
-		
-		exec = Executors.newSingleThreadExecutor();
 	}
 
 	private void initDecoder(String fileName) throws IOException
@@ -225,15 +217,6 @@ public abstract class SoundTouchPlayableBase implements Runnable
 				paused = true;
 				if (progressListener != null && !finished)
 				{
-					exec.shutdown();
-					try
-					{
-						exec.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					handler.post(new Runnable()
 					{
 						@Override
@@ -263,7 +246,13 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 			synchronized (sinkLock)
 			{
-				audioSink.close();
+				try
+				{
+					audioSink.close();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
 				audioSink = null;
 			}
 			synchronized (decodeLock)
@@ -288,7 +277,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 
 	protected void seekTo(long timeInUs)
 	{
-	};
+	}
 
 	public void start()
 	{
@@ -426,29 +415,7 @@ public abstract class SoundTouchPlayableBase implements Runnable
 			{
 				synchronized (sinkLock)
 				{
-					bytesWritten += bytesReceived;
-					final int sub = bytesReceived;
-					final byte[] tmp = Arrays.copyOf(input, input.length);
-					
-							
-							exec.submit(new Runnable() {
-
-								@Override
-								public void run()
-								{
-									try
-									{
-										audioSink.write(tmp, 0, sub);
-									} catch (IOException e)
-									{
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-									// TODO Auto-generated method stub
-									
-								}
-								
-							});
+					bytesWritten += audioSink.write(input, 0, bytesReceived);
 				}
 			}
 		}

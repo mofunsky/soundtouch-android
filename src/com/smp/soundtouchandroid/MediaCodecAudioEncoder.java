@@ -17,7 +17,7 @@ import android.os.Environment;
 import android.util.Log;
 
 @SuppressLint("NewApi")
-public class AudioSinkAudioEncoder implements AudioSink
+public class MediaCodecAudioEncoder implements AudioEncoder
 {
 	private MediaCodec codec;
 	private MediaFormat format;
@@ -45,7 +45,8 @@ public class AudioSinkAudioEncoder implements AudioSink
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
-	public AudioSinkAudioEncoder(String fileName) throws FileNotFoundException
+	public MediaCodecAudioEncoder(String fileNameIn, String fileNameOut)
+			throws FileNotFoundException
 	{
 		codec = MediaCodec.createByCodecName("OMX.google.aac.encoder");
 		format = new MediaFormat();
@@ -70,7 +71,7 @@ public class AudioSinkAudioEncoder implements AudioSink
 	}
 
 	@Override
-	public int write(byte[] input, int offsetInBytes, int sizeInBytes)
+	public int writeChunk(byte[] input, int offsetInBytes, int sizeInBytes)
 			throws IOException
 	{
 
@@ -112,11 +113,13 @@ public class AudioSinkAudioEncoder implements AudioSink
 			if (index >= 0)
 				codec.queueInputBuffer(index, 0 /* offset */, 0 /* size */,
 						0 /* timeUs */, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+			writeOutput();
 		} while (index < 0);
 		Log.d(TAG, "queued input EOS.");
 
 		while (!doneDequeing)
 			writeOutput();
+
 	}
 
 	private void writeOutput() throws IOException
@@ -201,5 +204,4 @@ public class AudioSinkAudioEncoder implements AudioSink
 			e.printStackTrace();
 		}
 	}
-
 }

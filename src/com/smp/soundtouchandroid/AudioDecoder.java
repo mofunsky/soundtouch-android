@@ -10,7 +10,7 @@ public interface AudioDecoder
 	long getDuration();
 	int getSamplingRate() throws IOException;
 	void close();
-	byte[] decodeChunk() throws SoundTouchAndroidException;
+	byte[] decodeChunk();
 	boolean sawOutputEOS();
 	void seek(long timeInUs);
 	void resetEOS();	
