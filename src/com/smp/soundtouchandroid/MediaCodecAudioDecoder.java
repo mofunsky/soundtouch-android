@@ -44,7 +44,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	private MediaFormat format;
 	private ByteBuffer[] codecInputBuffers;
 	private ByteBuffer[] codecOutputBuffers;
-	private byte[] chunk;
+	private byte[] lastChunk;
 	private volatile boolean sawOutputEOS;
 
 	public int getChannels() throws IOException
@@ -96,28 +96,6 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		info = new MediaCodec.BufferInfo();
 	}
 
-	@SuppressLint("NewApi")
-	public MediaCodecAudioDecoder(AssetFileDescriptor sampleFD)
-			throws IOException
-	{
-		extractor = new MediaExtractor();
-		extractor.setDataSource(sampleFD.getFileDescriptor(),
-				sampleFD.getStartOffset(), sampleFD.getLength());
-
-		format = extractor.getTrackFormat(0);
-		String mime = format.getString(MediaFormat.KEY_MIME);
-		durationUs = format.getLong(MediaFormat.KEY_DURATION);
-
-		codec = MediaCodec.createDecoderByType(mime);
-		codec.configure(format, null, null, 0);
-		codec.start();
-		codecInputBuffers = codec.getInputBuffers();
-		codecOutputBuffers = codec.getOutputBuffers();
-
-		extractor.selectTrack(0);
-		info = new MediaCodec.BufferInfo();
-	}
-
 	@Override
 	public void close()
 	{
@@ -129,8 +107,9 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	}
 
 	@Override
-	public byte[] decodeChunk()
+	public boolean decodeChunk()
 	{
+		boolean newBytes = false;
 		advanceInput();
 
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
@@ -138,17 +117,14 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		{
 			int outputBufIndex = res;
 			ByteBuffer buf = codecOutputBuffers[outputBufIndex];
-			if (chunk == null || chunk.length != info.size)
+			if (lastChunk == null || lastChunk.length != info.size)
 			{
-				chunk = new byte[info.size];
+				lastChunk = new byte[info.size];
 			}
-			buf.get(chunk);
+			buf.get(lastChunk);
 			buf.clear();
 			codec.releaseOutputBuffer(outputBufIndex, false);
-		}
-		else
-		{
-			chunk = new byte[0];
+			newBytes = true;
 		}
 		if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
@@ -162,7 +138,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			Log.d("MP3", "Output format has changed to " + format);
 		}
 
-		return chunk;
+		return newBytes;
 	}
 
 	@Override
@@ -217,6 +193,12 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 				extractor.advance();
 			}
 		}
+	}
+
+	@Override
+	public byte[] getLastChunk()
+	{
+		return lastChunk;
 	}
 
 }

@@ -10,8 +10,9 @@ public interface AudioDecoder
 	long getDuration();
 	int getSamplingRate() throws IOException;
 	void close();
-	byte[] decodeChunk();
+	boolean decodeChunk();
 	boolean sawOutputEOS();
 	void seek(long timeInUs);
-	void resetEOS();	
+	void resetEOS();
+	byte[] getLastChunk();	
 }

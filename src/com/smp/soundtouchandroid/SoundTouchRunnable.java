@@ -194,7 +194,7 @@ public abstract class SoundTouchRunnable implements Runnable
 			decoder = new MediaCodecAudioDecoder(fileName);
 		} else
 		{
-			decoder = new JLayerAudioDecoder(fileName);
+			throw new SoundTouchAndroidException("Only API level >= 16 supported.");
 		}
 
 		channels = decoder.getChannels();
@@ -329,8 +329,6 @@ public abstract class SoundTouchRunnable implements Runnable
 	private void processFile() throws IOException
 	{
 		int bytesReceived = 0;
-		byte[] input = null;
-
 		do
 		{
 			pauseWait();
@@ -344,15 +342,21 @@ public abstract class SoundTouchRunnable implements Runnable
 
 			if (soundTouch.getOutputBufferSize() <= MAX_OUTPUT_BUFFER_SIZE)
 			{
+				boolean newBytes;
 				synchronized (decodeLock)
 				{
-					input = decoder.decodeChunk();
+					newBytes = decoder.decodeChunk();
 				}
-				sendProgressUpdate();
-				processChunk(input, true);
-			} else
+				if (newBytes)
+				{
+					sendProgressUpdate();
+					processChunk(decoder.getLastChunk(), true);
+				}
+			} 
+			else
 			{
-				processChunk(input, false);
+				//avoiding an extra allocation.
+				processChunk(decoder.getLastChunk(), false);
 			}
 		} while (!decoder.sawOutputEOS());
 
@@ -363,7 +367,7 @@ public abstract class SoundTouchRunnable implements Runnable
 			{
 				if (finished)
 					break;
-				bytesReceived = processChunk(input, false);
+				bytesReceived = processChunk(null, false);
 			} while (bytesReceived > 0);
 		}
 	}
