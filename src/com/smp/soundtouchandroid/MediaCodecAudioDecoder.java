@@ -146,6 +146,10 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			buf.clear();
 			codec.releaseOutputBuffer(outputBufIndex, false);
 		}
+		else
+		{
+			chunk = new byte[0];
+		}
 		if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
 			sawOutputEOS = true;
