@@ -45,7 +45,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
-	public MediaCodecAudioEncoder(String fileNameIn, String fileNameOut)
+	public MediaCodecAudioEncoder(String fileNameOut)
 			throws FileNotFoundException
 	{
 		codec = MediaCodec.createByCodecName("OMX.google.aac.encoder");
@@ -63,8 +63,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 		codecInputBuffers = codec.getInputBuffers();
 		codecOutputBuffers = codec.getOutputBuffers();
-
-		outputStream = new BufferedOutputStream(new FileOutputStream(testPath));
+		String testFile = Environment.getExternalStorageDirectory() + "/MusicSpeedChanger/testingWriting.aac";
+		outputStream = new BufferedOutputStream(new FileOutputStream(testFile));
 
 		overflowBuffer = ByteBuffer.allocateDirect(8096);
 		chunk = new byte[4096];

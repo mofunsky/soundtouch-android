@@ -382,7 +382,7 @@ public abstract class SoundTouchRunnable implements Runnable
 					{
 						long pd = decoder.getPlayedDuration();
 						long d = decoder.getDuration();
-						double cp = pd == 0 ? 0 : (double) pd / d;
+						double cp = pd == 0 ? 0 : (double) pd / (double) d;
 						progressListener.onProgressChanged(
 								soundTouch.getTrackId(), cp, pd);
 					}

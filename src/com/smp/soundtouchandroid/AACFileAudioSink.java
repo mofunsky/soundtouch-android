@@ -12,9 +12,9 @@ public class AACFileAudioSink implements AudioSink
 	private AudioEncoder encoder;
 	private ExecutorService exec;
 	
-	public AACFileAudioSink(String fileNameIn, String fileNameOut) throws FileNotFoundException
+	public AACFileAudioSink(String fileNameOut) throws FileNotFoundException
 	{
-		encoder = new MediaCodecAudioEncoder(fileNameIn, fileNameOut);
+		encoder = new MediaCodecAudioEncoder(fileNameOut);
 		exec = Executors.newSingleThreadExecutor();
 	}
 	
