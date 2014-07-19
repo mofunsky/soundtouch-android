@@ -1,8 +1,5 @@
 package com.smp.soundtouchandroid;
 
-import static com.smp.soundtouchandroid.Constants.BUFFER_SIZE_TRACK;
-import static com.smp.soundtouchandroid.Constants.DEFAULT_BYTES_PER_SAMPLE;
-
 import java.io.IOException;
 
 import android.media.AudioFormat;
@@ -11,6 +8,8 @@ import android.media.AudioTrack;
 
 public class SoundTouchPlayer extends SoundTouchRunnable
 {
+	private static final int BUFFER_SIZE_TRACK = 32768;
+	
 	private AudioTrackAudioSink track;
 	
 	public SoundTouchPlayer(int id, String fileName, float tempo,

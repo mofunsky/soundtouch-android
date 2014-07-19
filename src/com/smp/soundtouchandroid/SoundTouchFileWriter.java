@@ -8,37 +8,33 @@ public class SoundTouchFileWriter extends SoundTouchRunnable
 {	
 	private long start, end;
 	private AACFileAudioSink file;
-	private String fileNameIn;
-	public SoundTouchFileWriter(int id, String fileName, float tempo,
+	private String fileNameIn, fileNameOut;
+	
+	public SoundTouchFileWriter(int id, String fileNameIn, String fileNameOut, float tempo,
 			float pitchSemi) throws IOException
 	{
-		super(id, fileName, tempo, pitchSemi);
-		fileNameIn = fileName;
+		super(id, fileNameIn, tempo, pitchSemi);
+		this.fileNameIn = fileNameIn;
+		this.fileNameOut = fileNameOut;
 	}
-	private String generateFileNameOut(String fileNameIn)
-	{
-		return fileNameIn;
-	}
-	
+
 	@Override
 	protected AudioSink initAudioSink() throws IOException
 	{
-		file = new AACFileAudioSink(fileNameIn, generateFileNameOut(fileNameIn));
+		file = new AACFileAudioSink(fileNameIn, fileNameOut);
 		return file;
 	}
 
 	@Override
 	protected void onStart()
 	{
-		start = System.nanoTime();
-		
+		start = System.nanoTime();	
 	}
 
 	@Override
 	protected void onPause()
 	{
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -46,10 +42,9 @@ public class SoundTouchFileWriter extends SoundTouchRunnable
 	{
 		try
 		{
-			file.finishWriting();
+			file.close();
 		} catch (IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		end = System.nanoTime();

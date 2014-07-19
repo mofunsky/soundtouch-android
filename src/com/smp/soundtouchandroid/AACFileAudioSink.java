@@ -44,7 +44,7 @@ public class AACFileAudioSink implements AudioSink
 	@Override
 	public void close() throws IOException
 	{
-		encoder.close();
+		finishWriting();
 	}
 
 	public void finishWriting() throws IOException
@@ -72,6 +72,7 @@ public class AACFileAudioSink implements AudioSink
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		encoder.close();
 	}
 
 }

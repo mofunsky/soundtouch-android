@@ -11,7 +11,6 @@ import android.media.MediaCodec.BufferInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
-import static com.smp.soundtouchandroid.Constants.*;
 
 @SuppressLint("NewApi")
 public class MediaCodecAudioDecoder implements AudioDecoder

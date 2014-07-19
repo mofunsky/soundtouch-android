@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import android.util.Log;
-import static com.smp.soundtouchandroid.Constants.*;
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.BitstreamException;
 import javazoom.jl.decoder.Decoder;
@@ -20,6 +19,8 @@ import javazoom.jl.decoder.SampleBuffer;
 
 public class JLayerAudioDecoder implements AudioDecoder
 {
+	private static final int MAX_CHUNK_SIZE = 2048;
+	
 	public JLayerAudioDecoder(String path) throws FileNotFoundException
 	{
 		file = new File(path);

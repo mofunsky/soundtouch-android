@@ -1,17 +1,14 @@
 package com.smp.soundtouchandroid;
 
-import static com.smp.soundtouchandroid.Constants.*;
-
 import java.io.IOException;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Handler;
 
 public abstract class SoundTouchRunnable implements Runnable
 {
 	private static final long NOT_SET = Long.MIN_VALUE;
+	protected static final int DEFAULT_BYTES_PER_SAMPLE = 2;
+	private static final long MAX_OUTPUT_BUFFER_SIZE = 1024;
 
 	protected Object pauseLock;
 	protected Object sinkLock;

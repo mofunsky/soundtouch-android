@@ -1,15 +1,30 @@
 
 package com.smp.soundtouchandroid;
-import static com.smp.soundtouchandroid.Constants.*;
 public class SoundTouch
 {
-	
+	private static final int DEFAULT_BUFFER_SIZE = 2048;
 	static
     {
         System.loadLibrary("soundtouch");
     }
 	
 	private int channels, samplingRate, bytesPerSample;
+	private float tempo;
+	private float pitchSemi;
+	private int track;
+	
+	public SoundTouch(int track, int channels, int samplingRate, int bytesPerSample, float tempo, float pitchSemi)
+	{
+		
+		this.channels = channels;
+		this.samplingRate = samplingRate;
+		this.bytesPerSample = bytesPerSample;
+		this.tempo = tempo;
+		this.pitchSemi = pitchSemi;
+		this.track = track;
+		
+		setup(track, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
+	}
 	
 	public int getBytesPerSample()
 	{
@@ -100,23 +115,6 @@ public class SoundTouch
 	public void finish()
 	{
 		finish(track, DEFAULT_BUFFER_SIZE);
-	}
-
-	private float tempo;
-	private float pitchSemi;
-	private int track;
-	
-	public SoundTouch(int track, int channels, int samplingRate, int bytesPerSample, float tempo, float pitchSemi)
-	{
-		
-		this.channels = channels;
-		this.samplingRate = samplingRate;
-		this.bytesPerSample = bytesPerSample;
-		this.tempo = tempo;
-		this.pitchSemi = pitchSemi;
-		this.track = track;
-		
-		setup(track, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 	}
 	
 	private static synchronized native final void clearBytes(int track);
