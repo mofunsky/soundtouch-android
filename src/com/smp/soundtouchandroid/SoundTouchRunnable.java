@@ -54,7 +54,10 @@ public abstract class SoundTouchRunnable implements Runnable
 
 	public long getDuration()
 	{
-		return decoder.getDuration();
+		if (decoder != null)
+			return decoder.getDuration();
+		else
+			return NOT_SET;
 	}
 
 	public String getFileName()
@@ -66,7 +69,10 @@ public abstract class SoundTouchRunnable implements Runnable
 	{
 		synchronized (decodeLock)
 		{
-			return decoder.getPlayedDuration();
+			if (decoder != null)
+				return decoder.getPlayedDuration();
+			else
+				return NOT_SET;
 		}
 	}
 
@@ -134,7 +140,7 @@ public abstract class SoundTouchRunnable implements Runnable
 	{
 		long pd = decoder.getPlayedDuration();
 		if (loopStart != NOT_SET && pd <= loopStart)
-			throw new SoundTouchAndroidException(
+			throw new SoundTouchAndroidRuntimeException(
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopEnd = loopEnd;
 	}
@@ -143,7 +149,7 @@ public abstract class SoundTouchRunnable implements Runnable
 	{
 		long pd = decoder.getPlayedDuration();
 		if (loopEnd != NOT_SET && pd >= loopEnd)
-			throw new SoundTouchAndroidException(
+			throw new SoundTouchAndroidRuntimeException(
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopStart = loopStart;
 	}
@@ -192,9 +198,11 @@ public abstract class SoundTouchRunnable implements Runnable
 		if (Build.VERSION.SDK_INT >= 16)
 		{
 			decoder = new MediaCodecAudioDecoder(fileName);
-		} else
+		}
+		else
 		{
-			throw new SoundTouchAndroidException("Only API level >= 16 supported.");
+			throw new SoundTouchAndroidRuntimeException(
+					"Only API level >= 16 supported.");
 		}
 
 		channels = decoder.getChannels();
@@ -228,15 +236,33 @@ public abstract class SoundTouchRunnable implements Runnable
 					decoder.resetEOS();
 				}
 			}
-		} catch (SoundTouchAndroidException e)
+		}
+		catch (final IOException e)
 		{
-			// need to notify...something?
 			e.printStackTrace();
-		} catch (IOException e)
+			if (progressListener != null)
+				handler.post(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						progressListener.onExceptionThrown(e);
+					}
+				});
+		}
+		catch (final SoundTouchAndroidDecoderException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally
+			if (progressListener != null)
+				handler.post(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						progressListener.onExceptionThrown(e);
+					}
+				});
+		}
+		finally
 		{
 			finished = true;
 			soundTouch.clearBuffer();
@@ -246,7 +272,8 @@ public abstract class SoundTouchRunnable implements Runnable
 				try
 				{
 					audioSink.close();
-				} catch (IOException e)
+				}
+				catch (IOException e)
 				{
 					e.printStackTrace();
 				}
@@ -319,14 +346,16 @@ public abstract class SoundTouchRunnable implements Runnable
 				try
 				{
 					pauseLock.wait();
-				} catch (InterruptedException e)
+				}
+				catch (InterruptedException e)
 				{
 				}
 			}
 		}
 	}
 
-	private void processFile() throws IOException
+	private void processFile() throws IOException,
+			SoundTouchAndroidDecoderException
 	{
 		int bytesReceived = 0;
 		do
@@ -345,20 +374,36 @@ public abstract class SoundTouchRunnable implements Runnable
 				boolean newBytes;
 				synchronized (decodeLock)
 				{
-					newBytes = decoder.decodeChunk();
+					try
+					{
+						newBytes = decoder.decodeChunk();
+					}
+					catch (IllegalArgumentException e)
+					{
+						e.printStackTrace();
+						throw new SoundTouchAndroidDecoderException(
+								"Buggy google decoder");
+					}
+					catch (IllegalStateException e)
+					{
+						e.printStackTrace();
+						throw new SoundTouchAndroidDecoderException(
+								"Buggy google decoder");
+					}
 				}
 				if (newBytes)
 				{
 					sendProgressUpdate();
 					processChunk(decoder.getLastChunk(), true);
 				}
-			} 
+			}
 			else
 			{
-				//avoiding an extra allocation.
+				// avoiding an extra allocation.
 				processChunk(decoder.getLastChunk(), false);
 			}
-		} while (!decoder.sawOutputEOS());
+		}
+		while (!decoder.sawOutputEOS());
 
 		soundTouch.finish();
 		if (!bypassSoundTouch)
@@ -368,7 +413,8 @@ public abstract class SoundTouchRunnable implements Runnable
 				if (finished)
 					break;
 				bytesReceived = processChunk(null, false);
-			} while (bytesReceived > 0);
+			}
+			while (bytesReceived > 0);
 		}
 	}
 
@@ -405,7 +451,8 @@ public abstract class SoundTouchRunnable implements Runnable
 			if (bypassSoundTouch)
 			{
 				bytesReceived = input.length;
-			} else
+			}
+			else
 			{
 				if (putBytes)
 					soundTouch.putBytes(input);

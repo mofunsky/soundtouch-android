@@ -11,20 +11,21 @@ public class AACFileAudioSink implements AudioSink
 {
 	private AudioEncoder encoder;
 	private ExecutorService exec;
-	
+
 	public AACFileAudioSink(String fileNameOut) throws FileNotFoundException
 	{
-		encoder = new MediaCodecAudioEncoder(fileNameOut);
+		encoder = new MediaCodecAudioEncoder();
 		exec = Executors.newSingleThreadExecutor();
 	}
-	
+
 	@Override
-	public int write(byte[] input, final int offSetInBytes, final int sizeInBytes)
-			throws IOException
+	public int write(byte[] input, final int offSetInBytes,
+			final int sizeInBytes) throws IOException
 	{
 		final byte[] tmp = Arrays.copyOf(input, input.length);
-		
-		exec.submit(new Runnable() {
+
+		exec.submit(new Runnable()
+		{
 
 			@Override
 			public void run()
@@ -32,12 +33,14 @@ public class AACFileAudioSink implements AudioSink
 				try
 				{
 					encoder.writeChunk(tmp, offSetInBytes, sizeInBytes);
-				} catch (IOException e)
+				}
+				catch (IOException e)
 				{
 					e.printStackTrace();
 				}
-			}});
-		
+			}
+		});
+
 		return sizeInBytes - offSetInBytes;
 	}
 
@@ -49,7 +52,8 @@ public class AACFileAudioSink implements AudioSink
 
 	public void finishWriting() throws IOException
 	{
-		exec.submit(new Runnable() {
+		exec.submit(new Runnable()
+		{
 
 			@Override
 			public void run()
@@ -57,22 +61,30 @@ public class AACFileAudioSink implements AudioSink
 				try
 				{
 					encoder.finishWriting();
-				} catch (IOException e)
+				}
+				catch (IOException e)
 				{
 					e.printStackTrace();
 				}
-			}});
-		
+			}
+		});
+
 		exec.shutdown();
 		try
 		{
 			exec.awaitTermination(20, TimeUnit.SECONDS);
-		} catch (InterruptedException e)
+		}
+		catch (InterruptedException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		encoder.close();
+	}
+
+	public void setFileOutputName(String fileNameOut) throws IOException
+	{
+		encoder.initFileOutput(fileNameOut);
 	}
 
 }

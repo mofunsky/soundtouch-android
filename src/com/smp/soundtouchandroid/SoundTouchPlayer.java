@@ -9,18 +9,20 @@ import android.media.AudioTrack;
 public class SoundTouchPlayer extends SoundTouchRunnable
 {
 	private static final int BUFFER_SIZE_TRACK = 32768;
-	
+
 	private AudioTrackAudioSink track;
-	
+
 	public SoundTouchPlayer(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
 	{
 		super(id, fileName, tempo, pitchSemi);
 	}
+
 	public int getSessionId()
 	{
 		return track.getAudioSessionId();
 	}
+
 	public long getAudioTrackBufferSize()
 	{
 		synchronized (sinkLock)
@@ -30,6 +32,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 					* getChannels();
 		}
 	}
+
 	public void setVolume(float left, float right)
 	{
 		synchronized (sinkLock)
@@ -37,10 +40,12 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 			track.setStereoVolume(left, right);
 		}
 	}
+
 	public boolean isInitialized()
 	{
 		return track.getState() == AudioTrack.STATE_INITIALIZED;
 	}
+
 	public void seekTo(double percentage, boolean shouldFlush) // 0.0 - 1.0
 	{
 		long timeInUs = (long) (decoder.getDuration() * percentage);
@@ -50,7 +55,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 	public void seekTo(long timeInUs, boolean shouldFlush)
 	{
 		if (timeInUs < 0 || timeInUs > decoder.getDuration())
-			throw new SoundTouchAndroidException("" + timeInUs
+			throw new SoundTouchAndroidRuntimeException("" + timeInUs
 					+ " Not a valid seek time.");
 
 		if (shouldFlush)
@@ -68,6 +73,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 			decoder.seek(timeInUs);
 		}
 	}
+
 	@Override
 	public void onStart()
 	{
@@ -76,44 +82,50 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 			track.play();
 		}
 	}
+
 	@Override
 	public void onPause()
 	{
 		synchronized (sinkLock)
 		{
 			track.pause();
-		}	
+		}
 	}
+
 	@Override
 	public void onStop()
-	{}
+	{
+	}
+
 	@Override
 	public void seekTo(long timeInUs)
 	{
 		seekTo(timeInUs, false);
 	}
+
 	private void initAudioTrack(int id, float tempo, float pitchSemi)
 			throws IOException
 	{
 		int channelFormat;
 
-		if (channels == 1) 
+		if (channels == 1)
 			channelFormat = AudioFormat.CHANNEL_OUT_MONO;
 		else if (channels == 2)
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
 		else
-			throw new SoundTouchAndroidException(
+			throw new SoundTouchAndroidRuntimeException(
 					"Valid channel count is 1 or 2");
 
-		track = new AudioTrackAudioSink(AudioManager.STREAM_MUSIC, samplingRate,
-				channelFormat, AudioFormat.ENCODING_PCM_16BIT,
+		track = new AudioTrackAudioSink(AudioManager.STREAM_MUSIC,
+				samplingRate, channelFormat, AudioFormat.ENCODING_PCM_16BIT,
 				BUFFER_SIZE_TRACK, AudioTrack.MODE_STREAM);
 	}
+
 	@Override
 	protected AudioSink initAudioSink() throws IOException
 	{
 		initAudioTrack(getSoundTouchTrackId(), getTempo(), getPitchSemi());
 		return track;
 	}
-	
+
 }

@@ -6,4 +6,6 @@ public interface OnProgressChangedListener
 			long position);
 
 	void onTrackEnd(int track);
+	
+	void onExceptionThrown(Exception e);
 }

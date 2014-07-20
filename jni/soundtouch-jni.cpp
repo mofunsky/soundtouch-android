@@ -20,8 +20,7 @@
 using namespace soundtouch;
 using namespace std;
 
-class SoundTouchStream : public SoundTouch
-{
+class SoundTouchStream: public SoundTouch {
 
 private:
 	queue<jbyte>* byteBufferOut;
@@ -30,45 +29,37 @@ private:
 
 public:
 
-	queue<jbyte>* getStream()
-	{
+	queue<jbyte>* getStream() {
 		return byteBufferOut;
 	}
 
-	int getSampleRate()
-	{
+	int getSampleRate() {
 		return sampleRate;
 	}
 
-	int getBytesPerSample()
-	{
+	int getBytesPerSample() {
 		return bytesPerSample;
 	}
 
-	void setSampleRate(int sampleRate)
-	{
+	void setSampleRate(int sampleRate) {
 		SoundTouch::setSampleRate(sampleRate);
 		this->sampleRate = sampleRate;
 	}
 
-	void setBytesPerSample(int bytesPerSample)
-	{
+	void setBytesPerSample(int bytesPerSample) {
 		this->bytesPerSample = bytesPerSample;
 	}
 
-	uint getChannels()
-	{
+	uint getChannels() {
 		return channels;
 	}
 
-	SoundTouchStream()
-	{
+	SoundTouchStream() {
 		byteBufferOut = new queue<jbyte>();
 		sampleRate = bytesPerSample = 0;
 	}
 
-	SoundTouchStream(const SoundTouchStream& other)
-	{
+	SoundTouchStream(const SoundTouchStream& other) {
 		byteBufferOut = new queue<jbyte>();
 		sampleRate = bytesPerSample = 0;
 	}
@@ -93,8 +84,7 @@ static int copyBytes(jbyte*, queue<jbyte>*, int);
 #ifdef __cplusplus
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
-		JNIEnv *env, jobject thiz, jint track)
-{
+		JNIEnv *env, jobject thiz, jint track) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 
 	const int BUFF_SIZE = 8192;
@@ -107,23 +97,20 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_clearBytes(
 	delete[] fBufferIn;
 	fBufferIn = NULL;
 
-	while (!byteBufferOut->empty())
-	{
+	while (!byteBufferOut->empty()) {
 		byteBufferOut->pop();
 	}
 }
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setup(
 		JNIEnv *env, jobject thiz, jint track, jint channels, jint samplingRate,
-		jint bytesPerSample, jfloat tempo, jfloat pitchSemi)
-{
+		jint bytesPerSample, jfloat tempo, jfloat pitchSemi) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setup(soundTouch, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 }
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(
-		JNIEnv *env, jobject thiz, jint track, int length)
-{
+		JNIEnv *env, jobject thiz, jint track, int length) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 
 	const int bytesPerSample = soundTouch.getBytesPerSample();
@@ -139,8 +126,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_finish(
 }
 
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(
-		JNIEnv *env, jobject thiz, jint track, jbyteArray input, jint length)
-{
+		JNIEnv *env, jobject thiz, jint track, jbyteArray input, jint length) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 
 	const int bytesPerSample = soundTouch.getBytesPerSample();
@@ -164,8 +150,7 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_putBytes(
 }
 
 extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(
-		JNIEnv *env, jobject thiz, jint track, jbyteArray get, jint toGet)
-{
+		JNIEnv *env, jobject thiz, jint track, jbyteArray get, jint toGet) {
 	queue<jbyte>* byteBufferOut = stStreams.at(track).getStream();
 
 	jbyte* res = new jbyte[toGet];
@@ -185,55 +170,61 @@ extern "C" DLL_PUBLIC jint Java_com_smp_soundtouchandroid_SoundTouch_getBytes(
 	return bytesWritten;
 }
 
-static int copyBytes(jbyte* arrayOut, queue<jbyte>* byteBufferOut, int toGet)
-{
+static int copyBytes(jbyte* arrayOut, queue<jbyte>* byteBufferOut, int toGet) {
 	int bytesWritten = 0;
 
-	for (int i = 0; i < toGet; i++)
-		{
-			if (byteBufferOut->size() > 0)
-			{
-				arrayOut[i] = byteBufferOut->front();
-				byteBufferOut->pop();
-				++bytesWritten;
-			}
-			else
-			{
-				break;
-			}
+	for (int i = 0; i < toGet; i++) {
+		if (byteBufferOut->size() > 0) {
+			arrayOut[i] = byteBufferOut->front();
+			byteBufferOut->pop();
+			++bytesWritten;
+		} else {
+			break;
 		}
+	}
 
 	return bytesWritten;
 }
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setPitchSemi(
-		JNIEnv *env, jobject thiz, jint track, jfloat pitchSemi)
-{
+		JNIEnv *env, jobject thiz, jint track, jfloat pitchSemi) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setPitchSemi(soundTouch, pitchSemi);
 }
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempo(
-		JNIEnv *env, jobject thiz, jint track, jfloat tempo)
-{
+		JNIEnv *env, jobject thiz, jint track, jfloat tempo) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setTempo(soundTouch, tempo);
 }
 extern "C" DLL_PUBLIC jlong Java_com_smp_soundtouchandroid_SoundTouch_getOutputBufferSize(
-		JNIEnv *env, jobject thiz, jint track)
-{
+		JNIEnv *env, jobject thiz, jint track) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	queue<jbyte>* byteBufferOut = soundTouch.getStream();
 	return byteBufferOut->size();
 }
 extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempoChange(
-		JNIEnv *env, jobject thiz, jint track, jfloat tempoChange)
-{
+		JNIEnv *env, jobject thiz, jint track, jfloat tempoChange) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setTempoChange(soundTouch, tempoChange);
 }
-
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setSpeech(
+		JNIEnv *env, jobject thiz, jint track, jboolean speech) {
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	if (speech) {
+		// use settings for speech processing
+		soundTouch.setSetting(SETTING_SEQUENCE_MS, 40);
+		soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 15);
+		soundTouch.setSetting(SETTING_OVERLAP_MS, 8);
+		//fprintf(stderr, "Tune processing parameters for speech processing.\n");
+	}
+	else
+	{
+		soundTouch.setSetting(SETTING_SEQUENCE_MS, 0);
+		soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 0);
+		soundTouch.setSetting(SETTING_OVERLAP_MS, 8);
+	}
+}
 static int process(SoundTouchStream& soundTouch, SAMPLETYPE* fBufferIn,
-		queue<jbyte>* byteBufferOut, const int BUFF_SIZE, bool finishing)
-{
+		queue<jbyte>* byteBufferOut, const int BUFF_SIZE, bool finishing) {
 	const uint channels = soundTouch.getChannels();
 	const int buffSizeSamples = BUFF_SIZE / channels;
 	const int bytesPerSample = soundTouch.getBytesPerSample();
@@ -242,35 +233,30 @@ static int process(SoundTouchStream& soundTouch, SAMPLETYPE* fBufferIn,
 
 	int processed = 0;
 
-	if (finishing)
-	{
+	if (finishing) {
 		soundTouch.flush();
-	}
-	else
-	{
+	} else {
 		soundTouch.putSamples(fBufferIn, nSamples);
 	}
 
-	do
-	{
+	do {
 		nSamples = soundTouch.receiveSamples(fBufferIn, buffSizeSamples);
-		processed += write(fBufferIn, byteBufferOut, nSamples * channels, bytesPerSample);
+		processed += write(fBufferIn, byteBufferOut, nSamples * channels,
+				bytesPerSample);
 	} while (nSamples != 0);
 
 	return processed;
 }
 
-static void* getConvBuffer(int sizeBytes)
-{
+static void* getConvBuffer(int sizeBytes) {
 	int convBuffSize = (sizeBytes + 15) & -8;
 	// round up to following 8-byte bounday
 	char *convBuff = new char[convBuffSize];
 	return convBuff;
 }
 
-static int write(const float *bufferIn, queue<jbyte>* bufferOut,
-		int numElems, int bytesPerSample)
-{
+static int write(const float *bufferIn, queue<jbyte>* bufferOut, int numElems,
+		int bytesPerSample) {
 	int numBytes;
 
 	int oldSize = bufferOut->size();
@@ -281,24 +267,19 @@ static int write(const float *bufferIn, queue<jbyte>* bufferOut,
 	numBytes = numElems * bytesPerSample;
 	short *temp = (short*) getConvBuffer(numBytes);
 
-	switch (bytesPerSample)
-	{
-	case 1:
-	{
+	switch (bytesPerSample) {
+	case 1: {
 		unsigned char *temp2 = (unsigned char *) temp;
-		for (int i = 0; i < numElems; i++)
-		{
+		for (int i = 0; i < numElems; i++) {
 			temp2[i] = (unsigned char) saturate(bufferIn[i] * 128.0f + 128.0f,
 					0.0f, 255.0f);
 		}
 		break;
 	}
 
-	case 2:
-	{
+	case 2: {
 		short *temp2 = (short *) temp;
-		for (int i = 0; i < numElems; i++)
-		{
+		for (int i = 0; i < numElems; i++) {
 			short value = (short) saturate(bufferIn[i] * 32768.0f, -32768.0f,
 					32767.0f);
 			temp2[i] = value;
@@ -306,11 +287,9 @@ static int write(const float *bufferIn, queue<jbyte>* bufferOut,
 		break;
 	}
 
-	case 3:
-	{
+	case 3: {
 		char *temp2 = (char *) temp;
-		for (int i = 0; i < numElems; i++)
-		{
+		for (int i = 0; i < numElems; i++) {
 			int value = saturate(bufferIn[i] * 8388608.0f, -8388608.0f,
 					8388607.0f);
 			*((int*) temp2) = value;
@@ -319,11 +298,9 @@ static int write(const float *bufferIn, queue<jbyte>* bufferOut,
 		break;
 	}
 
-	case 4:
-	{
+	case 4: {
 		int *temp2 = (int *) temp;
-		for (int i = 0; i < numElems; i++)
-		{
+		for (int i = 0; i < numElems; i++) {
 			int value = saturate(bufferIn[i] * 2147483648.0f, -2147483648.0f,
 					2147483647.0f);
 			temp2[i] = value;
@@ -334,8 +311,7 @@ static int write(const float *bufferIn, queue<jbyte>* bufferOut,
 		//should throw
 		break;
 	}
-	for (int i = 0; i < numBytes / 2; ++i)
-	{
+	for (int i = 0; i < numBytes / 2; ++i) {
 		bufferOut->push(temp[i] & 0xff);
 		bufferOut->push((temp[i] >> 8) & 0xff);
 	}
@@ -344,22 +320,18 @@ static int write(const float *bufferIn, queue<jbyte>* bufferOut,
 	return bufferOut->size() - oldSize;
 }
 
-static void setPitchSemi(SoundTouchStream& soundTouch, float pitchSemi)
-{
+static void setPitchSemi(SoundTouchStream& soundTouch, float pitchSemi) {
 	soundTouch.setPitchSemiTones(pitchSemi);
 }
 
-static void setTempo(SoundTouchStream& soundTouch, float tempo)
-{
+static void setTempo(SoundTouchStream& soundTouch, float tempo) {
 	soundTouch.setTempo(tempo);
 }
-static void setTempoChange(SoundTouchStream& soundTouch, float tempoChange)
-{
+static void setTempoChange(SoundTouchStream& soundTouch, float tempoChange) {
 	soundTouch.setTempoChange(tempoChange);
 }
 static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate,
-		int bytesPerSample, float tempoChange, float pitchSemi)
-{
+		int bytesPerSample, float tempoChange, float pitchSemi) {
 	soundTouch.setBytesPerSample(bytesPerSample);
 
 	soundTouch.setSampleRate(sampleRate);
@@ -372,49 +344,32 @@ static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate,
 	soundTouch.setSetting(SETTING_USE_QUICKSEEK, false);
 	soundTouch.setSetting(SETTING_USE_AA_FILTER, true);
 
-	//todo if speech
-	if (false)
-	{
-		// use settings for speech processing
-		soundTouch.setSetting(SETTING_SEQUENCE_MS, 40);
-		soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 15);
-		soundTouch.setSetting(SETTING_OVERLAP_MS, 8);
-		//fprintf(stderr, "Tune processing parameters for speech processing.\n");
-	}
 }
 
 static void convertInput(jbyte* input, float* output, const int BUFF_SIZE,
-		int bytesPerSample)
-{
-	switch (bytesPerSample)
-	{
-	case 1:
-	{
+		int bytesPerSample) {
+	switch (bytesPerSample) {
+	case 1: {
 		unsigned char *temp2 = (unsigned char*) input;
 		double conv = 1.0 / 128.0;
-		for (int i = 0; i < BUFF_SIZE; i++)
-		{
+		for (int i = 0; i < BUFF_SIZE; i++) {
 			output[i] = (float) (temp2[i] * conv - 1.0);
 		}
 		break;
 	}
-	case 2:
-	{
+	case 2: {
 		short *temp2 = (short*) input;
 		double conv = 1.0 / 32768.0;
-		for (int i = 0; i < BUFF_SIZE; i++)
-		{
+		for (int i = 0; i < BUFF_SIZE; i++) {
 			short value = temp2[i];
 			output[i] = (float) (value * conv);
 		}
 		break;
 	}
-	case 3:
-	{
+	case 3: {
 		char *temp2 = (char *) input;
 		double conv = 1.0 / 8388608.0;
-		for (int i = 0; i < BUFF_SIZE; i++)
-		{
+		for (int i = 0; i < BUFF_SIZE; i++) {
 			int value = *((int*) temp2);
 			value = value & 0x00ffffff;             // take 24 bits
 			value |= (value & 0x00800000) ? 0xff000000 : 0; // extend minus sign bits
@@ -423,13 +378,11 @@ static void convertInput(jbyte* input, float* output, const int BUFF_SIZE,
 		}
 		break;
 	}
-	case 4:
-	{
+	case 4: {
 		int *temp2 = (int *) input;
 		double conv = 1.0 / 2147483648.0;
 		assert(sizeof(int) == 4);
-		for (int i = 0; i < BUFF_SIZE; i++)
-		{
+		for (int i = 0; i < BUFF_SIZE; i++) {
 			int value = temp2[i];
 			output[i] = (float) (value * conv);
 		}
@@ -437,14 +390,10 @@ static void convertInput(jbyte* input, float* output, const int BUFF_SIZE,
 	}
 	}
 }
-static inline int saturate(float fvalue, float minval, float maxval)
-{
-	if (fvalue > maxval)
-	{
+static inline int saturate(float fvalue, float minval, float maxval) {
+	if (fvalue > maxval) {
 		fvalue = maxval;
-	}
-	else if (fvalue < minval)
-	{
+	} else if (fvalue < minval) {
 		fvalue = minval;
 	}
 	return (int) fvalue;

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileLock;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,9 +24,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	private MediaFormat format;
 
 	private ByteBuffer[] codecInputBuffers, codecOutputBuffers;
-	private volatile boolean signalEndOfInput;
-	private int numBytesSubmitted;
-	private int numBytesDequeued;
+	
 	private static final String TAG = "ENCODE";
 
 	// private long kNumInputBytes;
@@ -37,6 +36,9 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	private ByteBuffer overflowBuffer;
 	private boolean firstSkipped;
 	private byte[] chunk;
+	private int numBytesSubmitted;
+	private int numBytesDequeued;
+	private FileLock lock;
 	static String testPath;
 	static
 	{
@@ -45,7 +47,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
-	public MediaCodecAudioEncoder(String fileNameOut)
+	public MediaCodecAudioEncoder()
 			throws FileNotFoundException
 	{
 		codec = MediaCodec.createByCodecName("OMX.google.aac.encoder");
@@ -63,13 +65,18 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 		codecInputBuffers = codec.getInputBuffers();
 		codecOutputBuffers = codec.getOutputBuffers();
-		String testFile = Environment.getExternalStorageDirectory() + "/MusicSpeedChanger/testingWriting.aac";
-		outputStream = new BufferedOutputStream(new FileOutputStream(testFile));
-
+		
 		overflowBuffer = ByteBuffer.allocateDirect(8096);
 		chunk = new byte[4096];
 	}
-
+	
+	public void initFileOutput(String fileNameOut) throws IOException
+	{	
+		FileOutputStream fos = new FileOutputStream(fileNameOut);
+		lock = fos.getChannel().lock();
+		outputStream = new BufferedOutputStream(fos);
+		
+	}
 	@Override
 	public int writeChunk(byte[] input, int offsetInBytes, int sizeInBytes)
 			throws IOException
@@ -114,7 +121,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 				codec.queueInputBuffer(index, 0 /* offset */, 0 /* size */,
 						0 /* timeUs */, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
 			writeOutput();
-		} while (index < 0);
+		}
+		while (index < 0);
 		Log.d(TAG, "queued input EOS.");
 
 		while (!doneDequeing)
@@ -131,17 +139,21 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		if (index == MediaCodec.INFO_TRY_AGAIN_LATER)
 		{
 			;
-		} else if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
+		}
+		else if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
 			Log.d(TAG, "dequeued output EOS.");
 			doneDequeing = true;
-		} else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
+		}
+		else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
 			format = codec.getOutputFormat();
-		} else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
+		}
+		else if (index == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
 		{
 			codecOutputBuffers = codec.getOutputBuffers();
-		} else if (index >= 0)
+		}
+		else if (index >= 0)
 		{
 			int outBitsSize = info.size;
 			int outPacketSize = outBitsSize + 7; // 7 is ADTS size
@@ -197,9 +209,11 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 		try
 		{
+			lock.release();
 			outputStream.flush();
 			outputStream.close();
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}

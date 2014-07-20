@@ -26,7 +26,8 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		if (dot >= 0)
 		{
 			return uri.substring(dot);
-		} else
+		}
+		else
 		{
 			// No extension.
 			return "";
@@ -129,10 +130,12 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
 			sawOutputEOS = true;
-		} else if (res == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
+		}
+		else if (res == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
 		{
 			codecOutputBuffers = codec.getOutputBuffers();
-		} else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
+		}
+		else if (res == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED)
 		{
 			format = codec.getOutputFormat();
 			Log.d("MP3", "Output format has changed to " + format);
@@ -178,7 +181,8 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			{
 				sawInputEOS = true;
 				sampleSize = 0;
-			} else
+			}
+			else
 			{
 				presentationTimeUs = extractor.getSampleTime();
 				currentTimeUs += presentationTimeUs - lastPresentationTime;
