@@ -66,7 +66,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		codecInputBuffers = codec.getInputBuffers();
 		codecOutputBuffers = codec.getOutputBuffers();
 		
-		overflowBuffer = ByteBuffer.allocateDirect(8096);
+		overflowBuffer = ByteBuffer.allocateDirect(8192);
 		chunk = new byte[4096];
 	}
 	
