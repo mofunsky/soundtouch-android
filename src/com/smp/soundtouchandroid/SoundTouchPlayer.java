@@ -70,7 +70,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 		}
 		synchronized (decodeLock)
 		{
-			decoder.seek(timeInUs);
+			decoder.seek(timeInUs, shouldFlush);
 		}
 	}
 

@@ -12,7 +12,7 @@ public interface AudioDecoder
 	void close();
 	boolean decodeChunk();
 	boolean sawOutputEOS();
-	void seek(long timeInUs);
+	void seek(long timeInUs, boolean shouldFlush);
 	void resetEOS();
 	byte[] getLastChunk();	
 }

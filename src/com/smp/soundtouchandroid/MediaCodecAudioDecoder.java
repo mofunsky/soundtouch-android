@@ -156,12 +156,14 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	{
 		return sawOutputEOS;
 	}
-
+	
+	//not flushing creates distortion
 	@Override
-	public void seek(long timeInUs)
+	public void seek(long timeInUs, boolean shouldFlush)
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
 		lastPresentationTime = currentTimeUs = timeInUs;
+		//if (shouldFlush) 
 		codec.flush();
 	}
 
