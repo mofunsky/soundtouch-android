@@ -116,7 +116,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
 		if (res >= 0)
 		{
-			if (info.size - info.offset <= 0)
+			if (info.size - info.offset < 0)
 			{
 				int outputBufIndex = res;
 				ByteBuffer buf = codecOutputBuffers[outputBufIndex];
