@@ -118,10 +118,11 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		{
 			int outputBufIndex = res;
 			ByteBuffer buf = codecOutputBuffers[outputBufIndex];
-			if (lastChunk == null || lastChunk.length != info.size)
+			if (lastChunk == null || lastChunk.length != info.size - info.offset)
 			{
-				lastChunk = new byte[info.size];
+				lastChunk = new byte[info.size - info.offset];
 			}
+			buf.position(info.offset);
 			buf.get(lastChunk);
 			buf.clear();
 			codec.releaseOutputBuffer(outputBufIndex, false);
