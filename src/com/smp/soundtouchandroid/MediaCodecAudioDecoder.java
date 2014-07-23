@@ -116,17 +116,34 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		final int res = codec.dequeueOutputBuffer(info, TIMEOUT_US);
 		if (res >= 0)
 		{
-			int outputBufIndex = res;
-			ByteBuffer buf = codecOutputBuffers[outputBufIndex];
-			if (lastChunk == null || lastChunk.length != info.size - info.offset)
+			if (info.size - info.offset <= 0)
 			{
-				lastChunk = new byte[info.size - info.offset];
+				int outputBufIndex = res;
+				ByteBuffer buf = codecOutputBuffers[outputBufIndex];
+				if (lastChunk == null || lastChunk.length != info.size)
+				{
+					lastChunk = new byte[info.size];
+				}
+				buf.get(lastChunk);
+				buf.clear();
+				codec.releaseOutputBuffer(outputBufIndex, false);
+				newBytes = true;
 			}
-			buf.position(info.offset);
-			buf.get(lastChunk);
-			buf.clear();
-			codec.releaseOutputBuffer(outputBufIndex, false);
-			newBytes = true;
+			else
+			{
+				int outputBufIndex = res;
+				ByteBuffer buf = codecOutputBuffers[outputBufIndex];
+				if (lastChunk == null
+						|| lastChunk.length != info.size - info.offset)
+				{
+					lastChunk = new byte[info.size - info.offset];
+				}
+				buf.position(info.offset);
+				buf.get(lastChunk);
+				buf.clear();
+				codec.releaseOutputBuffer(outputBufIndex, false);
+				newBytes = true;
+			}
 		}
 		if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
@@ -157,14 +174,14 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	{
 		return sawOutputEOS;
 	}
-	
-	//not flushing creates distortion
+
+	// not flushing creates distortion
 	@Override
 	public void seek(long timeInUs, boolean shouldFlush)
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
 		lastPresentationTime = currentTimeUs = timeInUs;
-		//if (shouldFlush) 
+		// if (shouldFlush)
 		codec.flush();
 	}
 
