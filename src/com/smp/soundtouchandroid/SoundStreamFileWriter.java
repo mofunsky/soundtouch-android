@@ -40,6 +40,14 @@ public class SoundStreamFileWriter extends SoundStreamRunnable
 	@Override
 	protected void onStop()
 	{
+		try
+		{
+			file.finishWriting();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 		end = System.nanoTime();
 		long elapsedTime = end - start;
 		double seconds = (double) elapsedTime / 1000000000.0;

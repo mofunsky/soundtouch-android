@@ -11,6 +11,7 @@ public class AACFileAudioSink implements AudioSink
 {
 	private AudioEncoder encoder;
 	private ExecutorService exec;
+	private volatile boolean finishedWriting;
 
 	public AACFileAudioSink(String fileNameOut) throws FileNotFoundException
 	{
@@ -47,11 +48,13 @@ public class AACFileAudioSink implements AudioSink
 	@Override
 	public void close() throws IOException
 	{
-		finishWriting();
+		//an unorderly shutdown
+		if (!finishedWriting) encoder.close();
 	}
 
 	public void finishWriting() throws IOException
 	{
+		finishedWriting = true;
 		exec.submit(new Runnable()
 		{
 
@@ -72,7 +75,7 @@ public class AACFileAudioSink implements AudioSink
 		exec.shutdown();
 		try
 		{
-			exec.awaitTermination(20, TimeUnit.SECONDS);
+			exec.awaitTermination(90, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e)
 		{

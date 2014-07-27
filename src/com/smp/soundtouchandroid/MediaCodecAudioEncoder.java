@@ -38,7 +38,6 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	private byte[] chunk;
 	private int numBytesSubmitted;
 	private int numBytesDequeued;
-	private FileLock lock;
 	static String testPath;
 	static
 	{
@@ -73,7 +72,6 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	public void initFileOutput(String fileNameOut) throws IOException
 	{	
 		FileOutputStream fos = new FileOutputStream(fileNameOut);
-		lock = fos.getChannel().lock();
 		outputStream = new BufferedOutputStream(fos);
 		
 	}
@@ -127,7 +125,6 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 		while (!doneDequeing)
 			writeOutput();
-
 	}
 
 	private void writeOutput() throws IOException
@@ -206,10 +203,9 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		codec.stop();
 		codec.release();
 		codec = null;
-
+		
 		try
 		{
-			lock.release();
 			outputStream.flush();
 			outputStream.close();
 		}

@@ -212,6 +212,7 @@ public abstract class SoundStreamRunnable implements Runnable
 	@Override
 	public void run()
 	{
+		//does it do anything?
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 		try
@@ -325,6 +326,7 @@ public abstract class SoundStreamRunnable implements Runnable
 
 	public void stop()
 	{
+		finished = true;
 		if (paused)
 		{
 			synchronized (pauseLock)
@@ -334,7 +336,6 @@ public abstract class SoundStreamRunnable implements Runnable
 				pauseLock.notifyAll();
 			}
 		}
-		finished = true;
 	}
 
 	private void pauseWait()
