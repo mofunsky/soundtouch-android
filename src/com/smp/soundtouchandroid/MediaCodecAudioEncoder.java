@@ -24,7 +24,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	private MediaFormat format;
 
 	private ByteBuffer[] codecInputBuffers, codecOutputBuffers;
-	
+
 	private static final String TAG = "ENCODE";
 
 	// private long kNumInputBytes;
@@ -38,6 +38,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	private byte[] chunk;
 	private int numBytesSubmitted;
 	private int numBytesDequeued;
+	private int samplingRate, channels;
+	private int samplingRateKey;
 	static String testPath;
 	static
 	{
@@ -46,16 +48,19 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		testPath = baseDir + "/musicWRITING.aac";
 	}
 
-	public MediaCodecAudioEncoder()
+	public MediaCodecAudioEncoder(int samplingRate, int channels)
 			throws FileNotFoundException
 	{
+		this.samplingRate = samplingRate;
+		this.channels = channels;
+		samplingRateKey = determineSamplingRateKey(samplingRate);
 		codec = MediaCodec.createByCodecName("OMX.google.aac.encoder");
 		format = new MediaFormat();
 		format.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm");
 		format.setInteger(MediaFormat.KEY_AAC_PROFILE,
 				MediaCodecInfo.CodecProfileLevel.AACObjectLC); // AAC LC
-		format.setInteger(MediaFormat.KEY_SAMPLE_RATE, 44100);
-		format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 2);
+		format.setInteger(MediaFormat.KEY_SAMPLE_RATE, samplingRate);
+		format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, channels);
 		format.setInteger(MediaFormat.KEY_BIT_RATE, 128000);
 
 		codec.configure(format, null /* surface */, null /* crypto */,
@@ -64,17 +69,53 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 		codecInputBuffers = codec.getInputBuffers();
 		codecOutputBuffers = codec.getOutputBuffers();
-		
+
 		overflowBuffer = ByteBuffer.allocateDirect(8192);
 		chunk = new byte[4096];
 	}
-	
+
+	private int determineSamplingRateKey(int samplingRate)
+	{
+		switch (samplingRate)
+		{
+		case 96000:
+			return 0;
+		case 88200:
+			return 1;
+		case 64000:
+			return 2;
+		case 48000:
+			return 3;
+		case 44100:
+			return 4;
+		case 32000:
+			return 5;
+		case 24000:
+			return 6;
+		case 22050:
+			return 7;
+		case 16000:
+			return 8;
+		case 12000:
+			return 9;
+		case 11025:
+			return 10;
+		case 8000:
+			return 11;
+		case 7350:
+			return 12;
+		default:
+			return 4;
+		}
+	}
+
 	public void initFileOutput(String fileNameOut) throws IOException
-	{	
+	{
 		FileOutputStream fos = new FileOutputStream(fileNameOut);
 		outputStream = new BufferedOutputStream(fos);
-		
+
 	}
+
 	@Override
 	public int writeChunk(byte[] input, int offsetInBytes, int sizeInBytes)
 			throws IOException
@@ -184,8 +225,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	{
 		int profile = 2; // AAC
 							// 39=MediaCodecInfo.CodecProfileLevel.AACObjectELD;
-		int freqIdx = 4; // 44100KHz
-		int chanCfg = 2; // CPE
+		int freqIdx = samplingRateKey; // 44100KHz
+		int chanCfg = channels; // CPE
 
 		// fill in ADTS data
 		packet[0] = (byte) 0xFF;
@@ -203,7 +244,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 		codec.stop();
 		codec.release();
 		codec = null;
-		
+
 		try
 		{
 			outputStream.flush();

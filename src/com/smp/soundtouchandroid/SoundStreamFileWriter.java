@@ -21,7 +21,7 @@ public class SoundStreamFileWriter extends SoundStreamRunnable
 	@Override
 	protected AudioSink initAudioSink() throws IOException
 	{
-		file = new AACFileAudioSink(fileNameOut);
+		file = new AACFileAudioSink(fileNameOut, getSamplingRate(), getChannels());
 		return file;
 	}
 
