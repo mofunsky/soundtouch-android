@@ -326,7 +326,6 @@ public abstract class SoundStreamRunnable implements Runnable
 
 	public void stop()
 	{
-		finished = true;
 		if (paused)
 		{
 			synchronized (pauseLock)
@@ -336,6 +335,7 @@ public abstract class SoundStreamRunnable implements Runnable
 				pauseLock.notifyAll();
 			}
 		}
+		finished = true;
 	}
 
 	private void pauseWait()
