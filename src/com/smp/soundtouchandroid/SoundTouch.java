@@ -1,6 +1,6 @@
 package com.smp.soundtouchandroid;
 
-public class SoundTouch
+public class SoundTouch implements AudioProcessor
 {
 	private static final int DEFAULT_BUFFER_SIZE = 2048;
 	static
@@ -97,7 +97,7 @@ public class SoundTouch
 	public void setTempoChange(float tempoChange)
 	{
 		if (tempoChange < -50 || tempoChange > 100)
-			throw new SoundTouchAndroidRuntimeException(
+			throw new SoundStreamRuntimeException(
 					"Tempo percentage must be between -50 and 100");
 		this.tempo = 1.0f + 0.01f * tempoChange;
 		setTempoChange(track, tempoChange);

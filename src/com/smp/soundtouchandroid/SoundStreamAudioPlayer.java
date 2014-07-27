@@ -6,13 +6,13 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
-public class SoundTouchPlayer extends SoundTouchRunnable
+public class SoundStreamAudioPlayer extends SoundStreamRunnable
 {
 	private static final int BUFFER_SIZE_TRACK = 32768;
 
 	private AudioTrackAudioSink track;
 
-	public SoundTouchPlayer(int id, String fileName, float tempo,
+	public SoundStreamAudioPlayer(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
 	{
 		super(id, fileName, tempo, pitchSemi);
@@ -55,7 +55,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 	public void seekTo(long timeInUs, boolean shouldFlush)
 	{
 		if (timeInUs < 0 || timeInUs > decoder.getDuration())
-			throw new SoundTouchAndroidRuntimeException("" + timeInUs
+			throw new SoundStreamRuntimeException("" + timeInUs
 					+ " Not a valid seek time.");
 
 		if (shouldFlush)
@@ -113,7 +113,7 @@ public class SoundTouchPlayer extends SoundTouchRunnable
 		else if (channels == 2)
 			channelFormat = AudioFormat.CHANNEL_OUT_STEREO;
 		else
-			throw new SoundTouchAndroidRuntimeException(
+			throw new SoundStreamRuntimeException(
 					"Valid channel count is 1 or 2");
 
 		track = new AudioTrackAudioSink(AudioManager.STREAM_MUSIC,

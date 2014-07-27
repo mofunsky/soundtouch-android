@@ -15,7 +15,7 @@ public class AudioTrackAudioSink extends AudioTrack implements AudioSink
 	@Override
 	public void close()
 	{
-		pause();
+		stop();
 		flush();
 		release();
 	}

@@ -1,8 +1,8 @@
 package com.smp.soundtouchandroid;
 
-public class SoundTouchAndroidRuntimeException extends RuntimeException
+public class SoundStreamRuntimeException extends RuntimeException
 {
-	public SoundTouchAndroidRuntimeException(String errorMsg)
+	public SoundStreamRuntimeException(String errorMsg)
 	{
 		super(errorMsg);
 	}

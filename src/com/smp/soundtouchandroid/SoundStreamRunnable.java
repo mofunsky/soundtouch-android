@@ -4,7 +4,7 @@ import java.io.IOException;
 import android.os.Build;
 import android.os.Handler;
 
-public abstract class SoundTouchRunnable implements Runnable
+public abstract class SoundStreamRunnable implements Runnable
 {
 	private static final long NOT_SET = Long.MIN_VALUE;
 	protected static final int DEFAULT_BYTES_PER_SAMPLE = 2;
@@ -140,7 +140,7 @@ public abstract class SoundTouchRunnable implements Runnable
 	{
 		long pd = decoder.getPlayedDuration();
 		if (loopStart != NOT_SET && pd <= loopStart)
-			throw new SoundTouchAndroidRuntimeException(
+			throw new SoundStreamRuntimeException(
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopEnd = loopEnd;
 	}
@@ -149,7 +149,7 @@ public abstract class SoundTouchRunnable implements Runnable
 	{
 		long pd = decoder.getPlayedDuration();
 		if (loopEnd != NOT_SET && pd >= loopEnd)
-			throw new SoundTouchAndroidRuntimeException(
+			throw new SoundStreamRuntimeException(
 					"Invalid Loop Time, loop start must be < loop end");
 		this.loopStart = loopStart;
 	}
@@ -175,7 +175,7 @@ public abstract class SoundTouchRunnable implements Runnable
 		soundTouch.setTempoChange(tempoChange);
 	}
 
-	public SoundTouchRunnable(int id, String fileName, float tempo,
+	public SoundStreamRunnable(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
 	{
 		initDecoder(fileName);
@@ -201,7 +201,7 @@ public abstract class SoundTouchRunnable implements Runnable
 		}
 		else
 		{
-			throw new SoundTouchAndroidRuntimeException(
+			throw new SoundStreamRuntimeException(
 					"Only API level >= 16 supported.");
 		}
 
@@ -250,7 +250,7 @@ public abstract class SoundTouchRunnable implements Runnable
 					}
 				});
 		}
-		catch (final SoundTouchAndroidDecoderException e)
+		catch (final SoundStreamDecoderException e)
 		{
 			if (progressListener != null)
 				handler.post(new Runnable()
@@ -355,7 +355,7 @@ public abstract class SoundTouchRunnable implements Runnable
 	}
 
 	private void processFile() throws IOException,
-			SoundTouchAndroidDecoderException
+			SoundStreamDecoderException
 	{
 		int bytesReceived = 0;
 		do
@@ -381,13 +381,13 @@ public abstract class SoundTouchRunnable implements Runnable
 					catch (IllegalArgumentException e)
 					{
 						e.printStackTrace();
-						throw new SoundTouchAndroidDecoderException(
+						throw new SoundStreamDecoderException(
 								"Buggy google decoder");
 					}
 					catch (IllegalStateException e)
 					{
 						e.printStackTrace();
-						throw new SoundTouchAndroidDecoderException(
+						throw new SoundStreamDecoderException(
 								"Buggy google decoder");
 					}
 				}

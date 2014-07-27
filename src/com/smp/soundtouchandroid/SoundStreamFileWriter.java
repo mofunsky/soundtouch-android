@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import android.util.Log;
 
-public class SoundTouchFileWriter extends SoundTouchRunnable
+public class SoundStreamFileWriter extends SoundStreamRunnable
 {
 	private long start, end;
 	private AACFileAudioSink file;
 	private String fileNameOut;
 
-	public SoundTouchFileWriter(int id, String fileNameIn, String fileNameOut,
+	public SoundStreamFileWriter(int id, String fileNameIn, String fileNameOut,
 			float tempo, float pitchSemi) throws IOException
 	{
 		super(id, fileNameIn, tempo, pitchSemi);
@@ -43,6 +43,6 @@ public class SoundTouchFileWriter extends SoundTouchRunnable
 		end = System.nanoTime();
 		long elapsedTime = end - start;
 		double seconds = (double) elapsedTime / 1000000000.0;
-		Log.i("ENCODE", "SECONDS: " + String.valueOf(seconds));
+		//Log.i("ENCODE", "SECONDS: " + String.valueOf(seconds));
 	}
 }
