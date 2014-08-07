@@ -75,7 +75,7 @@ public class AACFileAudioSink implements AudioSink
 		exec.shutdown();
 		try
 		{
-			exec.awaitTermination(90, TimeUnit.SECONDS);
+			exec.awaitTermination(240, TimeUnit.SECONDS);
 		}
 		catch (InterruptedException e)
 		{

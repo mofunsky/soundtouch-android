@@ -37,7 +37,6 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	private static final long TIMEOUT_US = 0;
 
 	private long durationUs; // track duration in us
-	private volatile long lastPresentationTime;
 	private volatile long currentTimeUs; // total played duration thus far
 	private BufferInfo info;
 	private MediaCodec codec;
@@ -180,7 +179,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	public void seek(long timeInUs, boolean shouldFlush)
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-		lastPresentationTime = currentTimeUs = timeInUs;
+		currentTimeUs = timeInUs;
 		// if (shouldFlush)
 		codec.flush();
 	}
@@ -205,8 +204,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			else
 			{
 				presentationTimeUs = extractor.getSampleTime();
-				currentTimeUs += presentationTimeUs - lastPresentationTime;
-				lastPresentationTime = presentationTimeUs;
+				currentTimeUs = presentationTimeUs;
 			}
 
 			codec.queueInputBuffer(inputBufIndex, 0, sampleSize,

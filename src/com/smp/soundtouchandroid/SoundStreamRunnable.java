@@ -3,6 +3,7 @@ package com.smp.soundtouchandroid;
 import java.io.IOException;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 
 public abstract class SoundStreamRunnable implements Runnable
 {
@@ -367,6 +368,7 @@ public abstract class SoundStreamRunnable implements Runnable
 
 			if (isLooping() && decoder.getPlayedDuration() >= loopEnd)
 			{
+				Log.i("DECODE", String.valueOf(decoder.getPlayedDuration()));
 				seekTo(loopStart);
 			}
 
