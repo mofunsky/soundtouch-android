@@ -4,11 +4,17 @@ import java.io.IOException;
 
 import android.util.Log;
 
-public class SoundStreamFileWriter extends SoundStreamRunnable
+public class SoundStreamFileWriter extends SoundStreamRunnable implements OnProgressChangedListener
 {
 	private long start, end;
 	private AACFileAudioSink file;
 	private String fileNameOut;
+	private FileWritingListener fileListener;
+	
+	public interface FileWritingListener extends OnProgressChangedListener
+	{	
+		public void onFinishedWriting(boolean success);
+	}
 
 	public SoundStreamFileWriter(int id, String fileNameIn, String fileNameOut,
 			float tempo, float pitchSemi) throws IOException
@@ -16,8 +22,13 @@ public class SoundStreamFileWriter extends SoundStreamRunnable
 		super(id, fileNameIn, tempo, pitchSemi);
 		this.fileNameOut = fileNameOut;
 		file.setFileOutputName(fileNameOut);
+		setOnProgressChangedListener(this);
 	}
-
+	
+	public void setFileWritingListener(FileWritingListener listener)
+	{
+		this.fileListener = listener;
+	}
 	@Override
 	protected AudioSink initAudioSink() throws IOException
 	{
@@ -43,14 +54,59 @@ public class SoundStreamFileWriter extends SoundStreamRunnable
 		try
 		{
 			file.finishWriting();
+			handler.post(new Runnable() {
+
+				@Override
+				public void run()
+				{
+					fileListener.onFinishedWriting(true);
+				}
+			});
+			
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
+			handler.post(new Runnable() {
+
+				@Override
+				public void run()
+				{
+					fileListener.onFinishedWriting(true);
+				}
+			});
 		}
 		end = System.nanoTime();
 		long elapsedTime = end - start;
 		double seconds = (double) elapsedTime / 1000000000.0;
 		//Log.i("ENCODE", "SECONDS: " + String.valueOf(seconds));
+	}
+
+	@Override
+	public void onProgressChanged(int track, double currentPercentage,
+			long position)
+	{
+		fileListener.onProgressChanged(track, currentPercentage, position);
+	}
+
+	@Override
+	public void onTrackEnd(int track)
+	{
+		//Don't want to call it on the main thread - the most likely place we are.
+		new Thread(new Runnable() {
+
+			@Override
+			public void run()
+			{
+				stop();
+				
+			}
+		}).start();
+	}
+
+	@Override
+	public void onExceptionThrown(Exception e)
+	{
+		fileListener.onExceptionThrown(e);
 	}
 }

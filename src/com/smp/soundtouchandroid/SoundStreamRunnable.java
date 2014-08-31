@@ -20,8 +20,8 @@ public abstract class SoundStreamRunnable implements Runnable
 	protected SoundTouch soundTouch;
 	protected volatile AudioDecoder decoder;
 
-	private Handler handler;
-
+	protected Handler handler;
+	
 	private String fileName;
 	private boolean bypassSoundTouch;
 

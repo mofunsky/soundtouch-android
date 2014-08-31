@@ -57,7 +57,6 @@ public class AACFileAudioSink implements AudioSink
 		finishedWriting = true;
 		exec.submit(new Runnable()
 		{
-
 			@Override
 			public void run()
 			{
