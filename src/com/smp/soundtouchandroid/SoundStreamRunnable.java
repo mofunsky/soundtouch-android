@@ -1,5 +1,6 @@
 package com.smp.soundtouchandroid;
 
+import java.io.File;
 import java.io.IOException;
 import android.os.Build;
 import android.os.Handler;
@@ -193,7 +194,11 @@ public abstract class SoundStreamRunnable implements Runnable
 		paused = true;
 		finished = false;
 	}
-
+	public SoundStreamRunnable(int id, File file, float tempo,
+			float pitchSemi) throws IOException
+	{
+		this(id, file.getAbsolutePath(), tempo, pitchSemi);
+	}
 	private void initDecoder(String fileName) throws IOException
 	{
 		if (Build.VERSION.SDK_INT >= 16)

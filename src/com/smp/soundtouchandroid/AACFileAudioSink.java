@@ -13,7 +13,8 @@ public class AACFileAudioSink implements AudioSink
 	private ExecutorService exec;
 	private volatile boolean finishedWriting;
 
-	public AACFileAudioSink(String fileNameOut, int samplingRate, int channels) throws FileNotFoundException
+	public AACFileAudioSink(String fileNameOut, int samplingRate, int channels)
+			throws FileNotFoundException
 	{
 		encoder = new MediaCodecAudioEncoder(samplingRate, channels);
 		exec = Executors.newSingleThreadExecutor();
@@ -24,23 +25,25 @@ public class AACFileAudioSink implements AudioSink
 			final int sizeInBytes) throws IOException
 	{
 		final byte[] tmp = Arrays.copyOf(input, input.length);
-
-		exec.submit(new Runnable()
+		if (!exec.isShutdown())
 		{
-
-			@Override
-			public void run()
+			exec.submit(new Runnable()
 			{
-				try
+
+				@Override
+				public void run()
 				{
-					encoder.writeChunk(tmp, offSetInBytes, sizeInBytes);
+					try
+					{
+						encoder.writeChunk(tmp, offSetInBytes, sizeInBytes);
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
+			});
+		}
 
 		return sizeInBytes - offSetInBytes;
 	}
@@ -48,8 +51,9 @@ public class AACFileAudioSink implements AudioSink
 	@Override
 	public void close() throws IOException
 	{
-		//an unorderly shutdown
-		if (!finishedWriting) encoder.close();
+		// an unorderly shutdown
+		if (!finishedWriting)
+			encoder.close();
 	}
 
 	public void finishWriting() throws IOException
