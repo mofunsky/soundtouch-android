@@ -253,7 +253,7 @@ public abstract class SoundStreamRunnable implements Runnable
 					@Override
 					public void run()
 					{
-						progressListener.onExceptionThrown(e);
+						progressListener.onExceptionThrown(Log.getStackTraceString(e));
 					}
 				});
 		}
@@ -265,7 +265,7 @@ public abstract class SoundStreamRunnable implements Runnable
 					@Override
 					public void run()
 					{
-						progressListener.onExceptionThrown(e);
+						progressListener.onExceptionThrown(Log.getStackTraceString(e));
 					}
 				});
 		}

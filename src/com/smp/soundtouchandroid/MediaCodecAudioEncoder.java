@@ -111,6 +111,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 
 	public void initFileOutput(String fileNameOut) throws IOException
 	{
+		Log.d("FILE", fileNameOut);
 		FileOutputStream fos = new FileOutputStream(fileNameOut);
 		outputStream = new BufferedOutputStream(fos);
 

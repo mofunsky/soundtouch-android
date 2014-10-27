@@ -104,9 +104,11 @@ public class SoundStreamFileWriter extends SoundStreamRunnable implements OnProg
 		}).start();
 	}
 
+	
+
 	@Override
-	public void onExceptionThrown(Exception e)
+	public void onExceptionThrown(String string)
 	{
-		fileListener.onExceptionThrown(e);
+		fileListener.onExceptionThrown(string);
 	}
 }

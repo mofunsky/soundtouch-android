@@ -1,6 +1,12 @@
 package com.smp.soundtouchandroid;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
@@ -72,15 +78,51 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		throw new IOException("Not a valid audio file");
 	}
 
+	FileOutputStream fis = null;
+
 	@SuppressLint("NewApi")
 	public MediaCodecAudioDecoder(String fullPath) throws IOException
 	{
 		Locale locale = Locale.getDefault();
 		if (getExtension(fullPath).toLowerCase(locale).equals(".wma"))
 			throw new IOException("WMA file not supported");
-
+		RandomAccessFile fis = null;
 		extractor = new MediaExtractor();
-		extractor.setDataSource(fullPath);
+		try
+		{
+			extractor = new MediaExtractor();
+			extractor.setDataSource(fullPath);
+		}
+		//Sometimes it works and sometimes it don't....
+		catch (IOException e)
+		{
+			try
+			{
+				Thread.sleep(25);
+			}
+			catch (InterruptedException e2)
+			{
+				e2.printStackTrace();
+			}
+			try
+			{
+				extractor = new MediaExtractor();
+				extractor.setDataSource(fullPath);
+			}
+			catch (IOException e1)
+			{
+				try
+				{
+					Thread.sleep(25);
+				}
+				catch (InterruptedException e2)
+				{
+					e2.printStackTrace();
+				}
+				extractor = new MediaExtractor();
+				extractor.setDataSource(fullPath);
+			}
+		}
 
 		format = extractor.getTrackFormat(0);
 		String mime = format.getString(MediaFormat.KEY_MIME);

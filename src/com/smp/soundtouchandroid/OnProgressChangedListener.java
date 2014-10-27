@@ -7,5 +7,5 @@ public interface OnProgressChangedListener
 
 	void onTrackEnd(int track);
 	
-	void onExceptionThrown(Exception e);
+	void onExceptionThrown(String string);
 }
