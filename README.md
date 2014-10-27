@@ -65,7 +65,9 @@ Runnable that streams a decoded audio file to an AudioTrack. This implementation
 To demonstrate, execute the following in your app:
 
 ```java
-//the last two parameters are speed of playback (1.0 is 100% of original speed) and pitch adjustment in semi-tones.
+//The first parameter is the 'track' to play on. Multiple tracks allow for simultaneous operations, such as playing a file
+//and writing a file.
+//The last two parameters are speed of playback (1.0 is 100% of original speed) and pitch adjustment in semi-tones.
 SoundStreamAudioPlayer player = new SoundStreamAudioPlayer(0, fullPathToAudioFile, 1.0f, 0.0f);
 new Thread(player).start();
 player.start();
