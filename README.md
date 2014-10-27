@@ -59,23 +59,28 @@ do
 soundTouch.clearBuffer()
 ```
 
-Take a look at SoundTouchPlayable.java for a ready made implementation of a time-stretching, pitch-shifting
-Runnable that streams a decoded audio file to an AudioTrack. This implementation has been tested on Android API >= 16,
-lower API level support via JLayer decoding is very rough and alpha quality.
+Take a look at SoundStreamAudioPlayer.java for a ready made implementation of a time-stretching, pitch-shifting
+Runnable that streams a decoded audio file to an AudioTrack. This implementation relies on MediaCodec components and is compatible with API >= 16.
 
 To demonstrate, execute the following in your app:
 
 ```java
-//the last two parameters are speed of playback and pitch in semi-tones.
-SoundTouchPlayable st = new SoundTouchPlayable(fullPathToAudioFile, 0, 1.0f, 0.0f);
-new Thread(st).start();
-st.play();
+//the last two parameters are speed of playback (1.0 is 100% of original speed) and pitch adjustment in semi-tones.
+SoundStreamAudioPlayer player = new SoundStreamAudioPlayer(0, fullPathToAudioFile, 1.0f, 0.0f);
+new Thread(player).start();
+player.start();
 ````
 The track can be paused or stopped at a later time.
-stop() should always be called on a SoundTouchPlayable after use to release resources.
+stop() should always be called on a SoundStreamAudioPlayer after use to release resources. The object is no longer usable after stop() has been called.
 
 ```java
 st.pause();
 st.stop();
 ````
+There is also a ready made implementation for saving altered audio to an raw AAC encoded file with ADTS headers, which will be playable in common audio players.
 
+```java
+SoundStreamFileWriter writer = new SoundStreamFileWriter(0, fileNameIn, fileNameOut, tempo, pitch);
+new Thread(writer).start();
+writer.start();
+````
