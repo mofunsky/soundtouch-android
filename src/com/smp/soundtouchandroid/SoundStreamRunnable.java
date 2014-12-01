@@ -107,6 +107,11 @@ public abstract class SoundStreamRunnable implements Runnable
 	{
 		return soundTouch.getTempo();
 	}
+	
+	public float getRate()
+	{
+		return soundTouch.getRate();
+	}
 
 	public long getLoopEnd()
 	{
@@ -176,7 +181,16 @@ public abstract class SoundStreamRunnable implements Runnable
 	{
 		soundTouch.setTempoChange(tempoChange);
 	}
-
+	
+	public void setRate(float rate)
+	{
+		soundTouch.setRate(rate);
+	}
+	
+	public void setRateChange(float rate)
+	{
+		soundTouch.setRate(rate);
+	}
 	public SoundStreamRunnable(int id, String fileName, float tempo,
 			float pitchSemi) throws IOException
 	{

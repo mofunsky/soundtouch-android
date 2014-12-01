@@ -78,7 +78,9 @@ static void* getConvBuffer(int);
 static int process(SoundTouchStream&, SAMPLETYPE*, queue<jbyte>*, int, bool);
 static void setPitchSemi(SoundTouchStream&, float);
 static void setTempo(SoundTouchStream&, float);
+static void setRate(SoundTouchStream&, float);
 static void setTempoChange(SoundTouchStream&, float);
+static void setRateChange(SoundTouchStream&, float);
 static int copyBytes(jbyte*, queue<jbyte>*, int);
 
 #ifdef __cplusplus
@@ -194,6 +196,16 @@ extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setTempo(
 		JNIEnv *env, jobject thiz, jint track, jfloat tempo) {
 	SoundTouchStream& soundTouch = stStreams.at(track);
 	setTempo(soundTouch, tempo);
+}
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setRate(
+		JNIEnv *env, jobject thiz, jint track, jfloat rate) {
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	setRate(soundTouch, rate);
+}
+extern "C" DLL_PUBLIC void Java_com_smp_soundtouchandroid_SoundTouch_setRateChange(
+		JNIEnv *env, jobject thiz, jint track, jfloat rateChange) {
+	SoundTouchStream& soundTouch = stStreams.at(track);
+	setRateChange(soundTouch, rateChange);
 }
 extern "C" DLL_PUBLIC jlong Java_com_smp_soundtouchandroid_SoundTouch_getOutputBufferSize(
 		JNIEnv *env, jobject thiz, jint track) {
@@ -327,8 +339,14 @@ static void setPitchSemi(SoundTouchStream& soundTouch, float pitchSemi) {
 static void setTempo(SoundTouchStream& soundTouch, float tempo) {
 	soundTouch.setTempo(tempo);
 }
+static void setRate(SoundTouchStream& soundTouch, float rate) {
+	soundTouch.setRate(rate);
+}
 static void setTempoChange(SoundTouchStream& soundTouch, float tempoChange) {
 	soundTouch.setTempoChange(tempoChange);
+}
+static void setRateChange(SoundTouchStream& soundTouch, float rateChange) {
+	soundTouch.setRateChange(rateChange);
 }
 static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate,
 		int bytesPerSample, float tempoChange, float pitchSemi) {

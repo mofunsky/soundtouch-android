@@ -11,6 +11,7 @@ public class SoundTouch implements AudioProcessor
 	private int channels, samplingRate, bytesPerSample;
 	private float tempo;
 	private float pitchSemi;
+	private float rate;
 	private int track;
 
 	public SoundTouch(int track, int channels, int samplingRate,
@@ -23,6 +24,7 @@ public class SoundTouch implements AudioProcessor
 		this.tempo = tempo;
 		this.pitchSemi = pitchSemi;
 		this.track = track;
+		this.rate = 1.0f;
 
 		setup(track, channels, samplingRate, bytesPerSample, tempo, pitchSemi);
 	}
@@ -55,6 +57,11 @@ public class SoundTouch implements AudioProcessor
 	public float getTempo()
 	{
 		return tempo;
+	}
+	
+	public float getRate()
+	{
+		return rate;
 	}
 
 	public int getTrackId()
@@ -93,6 +100,12 @@ public class SoundTouch implements AudioProcessor
 		this.tempo = tempo;
 		setTempo(track, tempo);
 	}
+	public void setRate(float rate)
+	{
+		this.rate = rate;
+		setRate(track, rate);
+	}
+
 
 	public void setTempoChange(float tempoChange)
 	{
@@ -148,6 +161,12 @@ public class SoundTouch implements AudioProcessor
 	
 	private static synchronized native final void setTempo(int track,
 			float tempo);
+	
+	private static synchronized native final void setRate(int track,
+			float rate);
+	
+	private static synchronized native final void setRateChange(int track,
+			float rateChange);
 
 	private static synchronized native final void setTempoChange(int track,
 			float tempoChange);

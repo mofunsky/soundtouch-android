@@ -25,6 +25,16 @@ public class SoundStreamFileWriter extends SoundStreamRunnable implements OnProg
 		setOnProgressChangedListener(this);
 	}
 	
+	public SoundStreamFileWriter(int id, String fileNameIn, String fileNameOut,
+			float tempo, float pitchSemi, float rate) throws IOException
+	{
+		super(id, fileNameIn, tempo, pitchSemi);
+		setRate(rate);
+		this.fileNameOut = fileNameOut;
+		file.setFileOutputName(fileNameOut);
+		setOnProgressChangedListener(this);
+	}
+	
 	public void setFileWritingListener(FileWritingListener listener)
 	{
 		this.fileListener = listener;
