@@ -14,5 +14,5 @@ public interface AudioDecoder
 	boolean sawOutputEOS();
 	void seek(long timeInUs, boolean shouldFlush);
 	void resetEOS();
-	byte[] getLastChunk();	
+	byte[] getLastChunk();
 }

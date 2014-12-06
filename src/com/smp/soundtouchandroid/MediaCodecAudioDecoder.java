@@ -159,10 +159,12 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 		{
 			if (info.size - info.offset < 0)
 			{
+				Log.d("DECODE", "BURRRRP");
 				int outputBufIndex = res;
 				ByteBuffer buf = codecOutputBuffers[outputBufIndex];
 				if (lastChunk == null || lastChunk.length != info.size)
 				{
+					//this should always be info.size == 0, should the whole thing be refactored out?
 					lastChunk = new byte[info.size];
 				}
 				buf.get(lastChunk);
@@ -172,22 +174,13 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			}
 			else
 			{
-				int outputBufIndex = res;
-				ByteBuffer buf = codecOutputBuffers[outputBufIndex];
-				if (lastChunk == null
-						|| lastChunk.length != info.size - info.offset)
-				{
-					lastChunk = new byte[info.size - info.offset];
-				}
-				buf.position(info.offset);
-				buf.get(lastChunk);
-				buf.clear();
-				codec.releaseOutputBuffer(outputBufIndex, false);
+				processBytes(res);
 				newBytes = true;
 			}
 		}
 		if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
 		{
+			currentTimeUs = durationUs;
 			sawOutputEOS = true;
 		}
 		else if (res == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED)
@@ -202,7 +195,21 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 
 		return newBytes;
 	}
-
+	private void processBytes(int res)
+	{
+		int outputBufIndex = res;
+		ByteBuffer buf = codecOutputBuffers[outputBufIndex];
+		if (lastChunk == null
+				|| lastChunk.length != info.size - info.offset)
+		{
+			lastChunk = new byte[info.size - info.offset];
+		}
+		if (info.size != 0) currentTimeUs = info.presentationTimeUs;
+		buf.position(info.offset);
+		buf.get(lastChunk);
+		buf.clear();
+		codec.releaseOutputBuffer(outputBufIndex, false);
+	}
 	@Override
 	public void resetEOS()
 	{
@@ -222,6 +229,8 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	{
 		extractor.seekTo(timeInUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
 		currentTimeUs = timeInUs;
+		//Log.d("DECODE", "CURRENT TIME: " + String.valueOf(currentTimeUs));
+		//Log.d("DECODE", "total duration: " + String.valueOf(durationUs));
 		// if (shouldFlush)
 		codec.flush();
 	}
@@ -246,7 +255,7 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 			else
 			{
 				presentationTimeUs = extractor.getSampleTime();
-				currentTimeUs = presentationTimeUs;
+				//currentTimeUs = presentationTimeUs;
 			}
 
 			codec.queueInputBuffer(inputBufIndex, 0, sampleSize,

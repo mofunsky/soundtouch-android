@@ -387,7 +387,8 @@ public abstract class SoundStreamRunnable implements Runnable
 
 			if (isLooping() && decoder.getPlayedDuration() >= loopEnd)
 			{
-				Log.i("DECODE", String.valueOf(decoder.getPlayedDuration()));
+				//Log.d("DECODE", "TEST TIME: " + String.valueOf(decoder.getTestTime()));
+				//Log.d("DECODE", "PLAYED: " +  String.valueOf(decoder.getPlayedDuration()));
 				seekTo(loopStart);
 			}
 
@@ -425,7 +426,7 @@ public abstract class SoundStreamRunnable implements Runnable
 				processChunk(decoder.getLastChunk(), false);
 			}
 		}
-		while (!decoder.sawOutputEOS());
+		while (!decoder.sawOutputEOS() && getPlayedDuration() < getDuration());
 
 		soundTouch.finish();
 		if (!bypassSoundTouch)
