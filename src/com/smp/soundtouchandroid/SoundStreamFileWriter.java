@@ -102,6 +102,7 @@ public class SoundStreamFileWriter extends SoundStreamRunnable implements OnProg
 	@Override
 	public void onTrackEnd(int track)
 	{
+		finished = true;
 		//Don't want to call it on the main thread - the most likely place we are.
 		new Thread(new Runnable() {
 

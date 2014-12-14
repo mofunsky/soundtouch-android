@@ -141,7 +141,14 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	@Override
 	public void close()
 	{
-		codec.stop();
+		try
+		{
+			codec.stop();
+		}
+		catch (IllegalStateException e)
+		{
+			e.printStackTrace();
+		}
 		codec.release();
 		codec = null;
 		extractor.release();

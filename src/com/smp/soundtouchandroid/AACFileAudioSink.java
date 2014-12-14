@@ -52,8 +52,8 @@ public class AACFileAudioSink implements AudioSink
 	public void close() throws IOException
 	{
 		// an unorderly shutdown
-		if (!finishedWriting)
-			encoder.close();
+		//if (!finishedWriting)
+			//encoder.close();
 	}
 
 	public void finishWriting() throws IOException

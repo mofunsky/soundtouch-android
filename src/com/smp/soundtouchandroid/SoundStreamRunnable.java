@@ -31,7 +31,8 @@ public abstract class SoundStreamRunnable implements Runnable
 	private volatile AudioSink audioSink;
 	private volatile OnProgressChangedListener progressListener;
 
-	private volatile boolean paused, finished;
+	private volatile boolean paused;
+	protected volatile boolean finished;
 
 	protected int channels;
 	protected int samplingRate;

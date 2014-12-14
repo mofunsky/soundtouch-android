@@ -242,7 +242,14 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	@Override
 	public void close()
 	{
-		codec.stop();
+		try
+		{
+			codec.stop();
+		}
+		catch (IllegalStateException e)
+		{
+			e.printStackTrace();
+		}
 		codec.release();
 		codec = null;
 
