@@ -214,3 +214,11 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#Gradle
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
