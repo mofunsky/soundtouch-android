@@ -84,8 +84,8 @@ public class MediaCodecAudioDecoder implements AudioDecoder
 	public MediaCodecAudioDecoder(String fullPath) throws IOException
 	{
 		Locale locale = Locale.getDefault();
-		if (getExtension(fullPath).toLowerCase(locale).equals(".wma"))
-			throw new IOException("WMA file not supported");
+/*		if (getExtension(fullPath).toLowerCase(locale).equals(".wma"))
+			throw new IOException("WMA file not supported");*/
 		RandomAccessFile fis = null;
 		extractor = new MediaExtractor();
 		try
