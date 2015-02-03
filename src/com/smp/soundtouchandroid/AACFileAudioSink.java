@@ -14,7 +14,7 @@ public class AACFileAudioSink implements AudioSink
 	private volatile boolean finishedWriting;
 
 	public AACFileAudioSink(String fileNameOut, int samplingRate, int channels)
-			throws FileNotFoundException
+			throws IOException
 	{
 		encoder = new MediaCodecAudioEncoder(samplingRate, channels);
 		exec = Executors.newSingleThreadExecutor();

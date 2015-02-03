@@ -49,7 +49,7 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	}
 
 	public MediaCodecAudioEncoder(int samplingRate, int channels)
-			throws FileNotFoundException
+			throws IOException
 	{
 		this.samplingRate = samplingRate;
 		this.channels = channels;
@@ -123,6 +123,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	{
 
 		int total = 0;
+		if (overflowBuffer.capacity() < sizeInBytes)
+			overflowBuffer = ByteBuffer.allocateDirect(sizeInBytes);
 		overflowBuffer.clear();
 		overflowBuffer.put(input, offsetInBytes, sizeInBytes);
 		overflowBuffer.flip();
@@ -208,8 +210,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 			outBuf.position(info.offset);
 
 			if (firstSkipped)
-				outputStream.write(data, 0, outPacketSize); // open
-			// FileOutputStream
+				outputStream.write(data, 0, outPacketSize); 
+			
 			firstSkipped = true; // beforehand
 			numBytesDequeued += info.size;
 
@@ -226,8 +228,8 @@ public class MediaCodecAudioEncoder implements AudioEncoder
 	{
 		int profile = 2; // AAC
 							// 39=MediaCodecInfo.CodecProfileLevel.AACObjectELD;
-		int freqIdx = samplingRateKey; // 44100KHz
-		int chanCfg = channels; // CPE
+		int freqIdx = samplingRateKey; 
+		int chanCfg = channels; 
 
 		// fill in ADTS data
 		packet[0] = (byte) 0xFF;
