@@ -70,9 +70,9 @@ const int MAX_TRACKS = 16;
 vector<SoundTouchStream> stStreams(MAX_TRACKS);
 
 static void* getConvBuffer(int);
-static int write(const float*, queue<jbyte>*, int, int);
+static int write(const SAMPLETYPE*, queue<jbyte>*, int, int);
 static void setup(SoundTouchStream&, int, int, int, float, float);
-static void convertInput(jbyte*, float*, int, int);
+static void convertInput(jbyte*, SAMPLETYPE*, int, int);
 static inline int saturate(float, float, float);
 static void* getConvBuffer(int);
 static int process(SoundTouchStream&, SAMPLETYPE*, queue<jbyte>*, int, bool);
@@ -267,7 +267,7 @@ static void* getConvBuffer(int sizeBytes) {
 	return convBuff;
 }
 
-static int write(const float *bufferIn, queue<jbyte>* bufferOut, int numElems,
+static int write(const SAMPLETYPE *bufferIn, queue<jbyte>* bufferOut, int numElems,
 		int bytesPerSample) {
 	int numBytes;
 
@@ -364,7 +364,7 @@ static void setup(SoundTouchStream& soundTouch, int channels, int sampleRate,
 
 }
 
-static void convertInput(jbyte* input, float* output, const int BUFF_SIZE,
+static void convertInput(jbyte* input, SAMPLETYPE* output, const int BUFF_SIZE,
 		int bytesPerSample) {
 	switch (bytesPerSample) {
 	case 1: {

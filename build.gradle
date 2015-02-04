@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.+'
+        classpath 'com.android.tools.build:gradle:1.0.1'
     }
 }
 apply plugin: 'android-library'
@@ -14,7 +14,7 @@ dependencies {
 
 android {
     compileSdkVersion 20
-    buildToolsVersion "21.1.0"
+    buildToolsVersion "21.0.0"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -46,3 +46,5 @@ android {
         release.setRoot('build-types/release')
     }
 }
+
+apply from:"$rootDir/gradle-mvn-push.gradle"
